@@ -46,7 +46,10 @@ doc = [
 "Bug Tracker" = "https://telethon.dev/issues/"
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = [
+    "setuptools>=61.0",
+    "typing-extensions~=4.12.2"
+]
 build-backend = "backend"
 backend-path = ["build_backend"]
 
