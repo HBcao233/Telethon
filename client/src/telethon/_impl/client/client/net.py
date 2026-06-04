@@ -8,9 +8,11 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional, TypeVar
 
+from telethon_mtsender import Sender, RpcError
+
 from ....version import __version__
-from ...mtproto import BadStatusError, Full, RpcError
-from ...mtsender import Connector, ReconnectionPolicy, Sender
+from ...mtproto import BadStatusError, Full
+from ...mtsender import Connector, ReconnectionPolicy
 from ...mtsender import connect as do_connect_sender
 from ...session import DataCenter
 from ...session import User as SessionUser
@@ -94,15 +96,15 @@ async def connect_sender(
         or (next((d.auth for d in known_dcs if d.id == dc.id and d.auth), None))
     )
 
-    sender = await do_connect_sender(
-        Full(),
+    sender = Sender(
+        # Full(),
         dc.id,
         addr,
-        auth_key=auth,
-        base_logger=config.base_logger,
-        connector=config.connector,
-        reconnection_policy=config.reconnection_policy,
+        # base_logger=config.base_logger,
+        # connector=config.connector,
+        # reconnection_policy=config.reconnection_policy,
     )
+    await sender.connect(auth_key=auth)
 
     try:
         remote_config_data = await sender.invoke(
@@ -262,21 +264,16 @@ async def invoke_in_dc(
     sleep_thresh = client._config.flood_sleep_threshold
 
     sender = client._senders[dc_id]
-    rx = sender.enqueue(request)
-    while True:
-        while not rx.done():
-            await step_sender(client, dc_id)
-        try:
-            response = rx.result()
-            break
-        except RpcError as e:
-            if e.code == 420 and e.value is not None and e.value < sleep_thresh:
-                await asyncio.sleep(e.value)
-                sleep_thresh -= e.value
-                rx = sender.enqueue(request)
-                continue
-            else:
-                raise adapt_rpc(e) from None
+    try:
+        response = await sender.invoke(request)
+    except RpcError as e:
+        if e.code == 420 and e.value is not None and e.value < sleep_thresh:
+            await asyncio.sleep(e.value)
+            sleep_thresh -= e.value
+            response = await sender.invoke(request)
+        else:
+            # raise adapt_rpc(e) from None
+            raise
     return request.deserialize_response(response)
 
 
@@ -287,26 +284,12 @@ async def invoke_request(
     return await invoke_in_dc(client, client._session.home_dc_id, request)
 
 
-async def step_sender(client: Client, dc_id: int) -> None:
-    try:
-        assert client._senders[dc_id]
-        await client._senders[dc_id].step()
-    except ConnectionError:
-        if client.connected:
-            raise
-        else:
-            # disconnect was called, so the socket returning 0 bytes is expected
-            return
-
-    updates = client._senders[dc_id].pop_updates()
-    process_socket_updates(client, updates)
-
-
 async def run_until_disconnected(self: Client) -> None:
-    while self.connected:
-        home_dc_id = self._session.home_dc_id
-        if self._senders[home_dc_id]:
-            await step_sender(self, home_dc_id)
+    _stop_event = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    loop.loop.add_signal_handler(signal.SIGINT, _stop_event.set)
+    await _stop_event.wait()
+    
 
 
 def connected(client: Client) -> bool:

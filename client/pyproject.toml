@@ -19,6 +19,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+  "telethon-mtsender",
   "pyaes~=1.6",
   "rsa~=4.9",
   "markdown-it-py~=3.0",

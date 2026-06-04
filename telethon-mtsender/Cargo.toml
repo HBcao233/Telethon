@@ -1,0 +1,27 @@
+[package]
+name = "telethon-mtsender"
+version = "0.0.1"
+description = """
+A sender implementation fir pyo3 using the Mobile Transport Protocol.
+"""
+edition = "2024"
+authors = ["HBcao233 <hbcaoqaq@outlook.com>"]
+license = "MIT"
+documentation = ""
+homepage = ""
+repository = ""
+
+[lib]
+name = "_rs"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+grammers-tl-types = { git = "https://codeberg.org/Lonami/grammers.git", rev = "9cd066ffa2" }
+grammers-mtproto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "9cd066ffa2" }
+grammers-mtsender = { git = "https://codeberg.org/Lonami/grammers.git", rev = "9cd066ffa2" }
+
+tokio = { version = "1.49.0", default-features = false, features = ["io-util", "sync", "time", "net", "macros", "rt", "rt-multi-thread", "signal", "fs"] }
+
+pyo3 = { version = "0.28", features = ["experimental-async"] }
+pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
