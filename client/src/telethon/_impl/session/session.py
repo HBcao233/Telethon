@@ -160,15 +160,18 @@ class Session:
     Will be incremented if new fields are added.
     """
 
-    __slots__ = ("dcs", "user", "state")
+    __slots__ = ("home_dc_id", "dcs", "user", "state")
 
     def __init__(
         self,
         *,
+        home_dc_id: int = 2,
         dcs: Optional[list[DataCenter]] = None,
         user: Optional[User] = None,
         state: Optional[UpdateState] = None,
     ) -> None:
+        self.home_dc_id = home_dc_id
+        "home data center id."
         self.dcs = dcs or []
         "List of known data-centers."
         self.user = user

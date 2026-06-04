@@ -9,8 +9,7 @@ if TYPE_CHECKING:
     from .serializable import Serializable
 
     class Buffer(Protocol):
-        def __buffer__(self, flags: int, /) -> memoryview:
-            ...
+        def __buffer__(self, flags: int, /) -> memoryview: ...
 
 
 AnySerializable = TypeVar("AnySerializable", bound="Serializable")

@@ -27,12 +27,13 @@ async def is_authorized(self: Client) -> bool:
 
 
 async def complete_login(client: Client, auth: abcs.auth.Authorization) -> User:
-    assert client._sender
+    home_dc_id = client._session.home_dc_id
+    sender = client._senders[home_dc_id]
     assert isinstance(auth, types.auth.Authorization)
     assert isinstance(auth.user, types.User)
     user = User._from_raw(auth.user)
     client._session.user = SessionUser(
-        id=user.id, dc=client._sender.dc_id, bot=user.bot, username=user.username
+        id=user.id, dc=sender.dc_id, bot=user.bot, username=user.username
     )
 
     client._chat_hashes.set_self_user(user.id, user.bot)
@@ -55,15 +56,15 @@ async def complete_login(client: Client, auth: abcs.auth.Authorization) -> User:
 
 
 async def handle_migrate(client: Client, dc_id: Optional[int]) -> None:
-    assert client._sender
     assert dc_id is not None
     sender, client._session.dcs = await connect_sender(
         client._config, client._session.dcs, DataCenter(id=dc_id)
     )
+    client._session.home_dc_id = sender.dc_id
 
-    old_sender = client._sender
-    client._sender = sender
-    await old_sender.disconnect()
+    # old_sender = client._sender
+    client._senders[dc_id] = sender
+    # await old_sender.disconnect()
 
 
 async def bot_sign_in(self: Client, token: str) -> User:

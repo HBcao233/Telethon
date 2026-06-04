@@ -4,7 +4,7 @@ import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Literal, Optional, Sequence, Type, TypeVar
+from typing import Any, Dict, Literal, List, Optional, Sequence, Type, TypeVar
 
 from typing_extensions import Self
 
@@ -96,12 +96,15 @@ from .messages import (
 from .net import (
     Config,
     connect,
+    connect_to_dc,
     connected,
     default_device_model,
     default_system_version,
     disconnect,
     invoke_request,
+    invoke_in_dc,
     run_until_disconnected,
+    copy_auth_to_dc,
 )
 from .updates import (
     add_event_handler,
@@ -221,7 +224,8 @@ class Client:
         assert __package__
         base_logger = logger or logging.getLogger(__package__[: __package__.index(".")])
 
-        self._sender: Optional[Sender] = None
+        self._senders: Dict[int, Sender] = {}
+        self._auth_copied_to_dcs: List[int] = []
 
         if isinstance(session, Storage):
             storage = session
@@ -392,6 +396,9 @@ class Client:
             # success!
         """
         await connect(self)
+
+    async def connect_to_dc(self, dc_id: int):
+        return await connect_to_dc(self, dc_id)
 
     async def delete_dialog(self, dialog: Peer | PeerRef, /) -> None:
         """
@@ -1290,6 +1297,9 @@ class Client:
         """
         await run_until_disconnected(self)
 
+    async def copy_auth_to_dc(self, target_dc_id: int):
+        await copy_auth_to_dc(self, target_dc_id)
+
     def search_all_messages(
         self,
         limit: Optional[int] = None,
@@ -2076,6 +2086,12 @@ class Client:
         self, fd: str | Path | InFileLike, size: Optional[int], name: Optional[str]
     ) -> tuple[abcs.InputFile, str]:
         return await upload(self, fd, size, name)
+
+    async def invoke(self, request: Request[Return]) -> Return:
+        return await invoke_request(self, request)
+
+    async def invoke_in_dc(self, dc_id: int, request: Request[Return]) -> Return:
+        return await invoke_in_dc(self, dc_id, request)
 
     async def __call__(self, request: Request[Return]) -> Return:
         return await invoke_request(self, request)

@@ -236,9 +236,9 @@ class MessageBox:
             )
 
         self.reset_deadlines({entry}, next_updates_deadline())
-        assert (
-            entry not in self.possible_gaps
-        ), "gaps shouldn't be created while getting difference"
+        assert entry not in self.possible_gaps, (
+            "gaps shouldn't be created while getting difference"
+        )
 
     def ensure_known_peer_hashes(
         self,

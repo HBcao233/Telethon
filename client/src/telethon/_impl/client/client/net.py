@@ -170,7 +170,8 @@ async def connect_sender(
 
 
 async def connect(self: Client) -> None:
-    if self._sender:
+    home_dc_id = self._session.home_dc_id
+    if home_dc_id in self._senders:
         return
 
     if session := await self._storage.load():
@@ -179,9 +180,10 @@ async def connect(self: Client) -> None:
     datacenter = self._config.datacenter or DataCenter(
         id=self._session.user.dc if self._session.user else DEFAULT_DC
     )
-    self._sender, self._session.dcs = await connect_sender(
+    sender, self._session.dcs = await connect_sender(
         self._config, self._session.dcs, datacenter
     )
+    self._senders[home_dc_id] = sender
 
     if self._message_box.is_empty() and self._session.user:
         try:
@@ -196,19 +198,30 @@ async def connect(self: Client) -> None:
             assert me is not None
             self._chat_hashes.set_self_user(me.id, me.bot)
             self._session.user = SessionUser(
-                id=me.id, dc=self._sender.dc_id, bot=me.bot, username=me.username
+                id=me.id, dc=sender.dc_id, bot=me.bot, username=me.username
             )
 
     self._dispatcher = asyncio.create_task(dispatcher(self))
 
 
+async def connect_to_dc(self: Client, dc_id: int):
+    if dc_id in self._senders:
+        return
+
+    datacenter = DataCenter(id=dc_id)
+    self._senders[dc_id], self._session.dcs = await connect_sender(
+        self._config, self._session.dcs, datacenter
+    )
+
+
 async def disconnect(self: Client) -> None:
-    if not self._sender:
+    home_dc_id = self._session.home_dc_id
+    if home_dc_id not in self._senders:
         return
     assert self._dispatcher
 
-    sender = self._sender
-    self._sender = None  # treated as disconnected
+    sender = self._senders[home_dc_id]
+    del self._senders[home_dc_id]  # treated as disconnected
 
     self._dispatcher.cancel()
     try:
@@ -238,18 +251,21 @@ async def disconnect(self: Client) -> None:
         await self._storage.close()
 
 
-async def invoke_request(
+async def invoke_in_dc(
     client: Client,
+    dc_id: int,
     request: Request[Return],
 ) -> Return:
-    if not client._sender:
+    if dc_id not in client._senders:
         raise ConnectionError("not connected")
 
     sleep_thresh = client._config.flood_sleep_threshold
-    rx = client._sender.enqueue(request)
+
+    sender = client._senders[dc_id]
+    rx = sender.enqueue(request)
     while True:
         while not rx.done():
-            await step_sender(client)
+            await step_sender(client, dc_id)
         try:
             response = rx.result()
             break
@@ -257,17 +273,24 @@ async def invoke_request(
             if e.code == 420 and e.value is not None and e.value < sleep_thresh:
                 await asyncio.sleep(e.value)
                 sleep_thresh -= e.value
-                rx = client._sender.enqueue(request)
+                rx = sender.enqueue(request)
                 continue
             else:
                 raise adapt_rpc(e) from None
     return request.deserialize_response(response)
 
 
-async def step_sender(client: Client) -> None:
+async def invoke_request(
+    client: Client,
+    request: Request[Return],
+) -> Return:
+    return await invoke_in_dc(client, client._session.home_dc_id, request)
+
+
+async def step_sender(client: Client, dc_id: int) -> None:
     try:
-        assert client._sender
-        await client._sender.step()
+        assert client._senders[dc_id]
+        await client._senders[dc_id].step()
     except ConnectionError:
         if client.connected:
             raise
@@ -275,15 +298,37 @@ async def step_sender(client: Client) -> None:
             # disconnect was called, so the socket returning 0 bytes is expected
             return
 
-    updates = client._sender.pop_updates()
+    updates = client._senders[dc_id].pop_updates()
     process_socket_updates(client, updates)
 
 
 async def run_until_disconnected(self: Client) -> None:
     while self.connected:
-        if self._sender:
-            await step_sender(self)
+        home_dc_id = self._session.home_dc_id
+        if self._senders[home_dc_id]:
+            await step_sender(self, home_dc_id)
 
 
 def connected(client: Client) -> bool:
-    return client._sender is not None
+    home_dc_id = client._session.home_dc_id
+    return client._senders[home_dc_id] is not None
+
+
+async def copy_auth_to_dc(self: Client, target_dc_id: int) -> bool:
+    if target_dc_id in self._auth_copied_to_dcs:
+        return False
+
+    exported_auth = await self.invoke(
+        functions.auth.export_authorization(dc_id=target_dc_id)
+    )
+    await self.invoke_in_dc(
+        target_dc_id,
+        functions.auth.import_authorization(
+            id=exported_auth.id,
+            bytes=exported_auth.bytes,
+        ),
+    )
+
+    self._auth_copied_to_dcs.append(target_dc_id)
+
+    return True

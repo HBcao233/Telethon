@@ -168,6 +168,7 @@ class File(metaclass=NoPublicConstructor):
         thumbs: Optional[Sequence[abcs.PhotoSize]],
         raw: Optional[abcs.MessageMedia | abcs.Photo | abcs.Document],
         client: Optional[Client],
+        dc_id: Optional[int],
     ) -> None:
         self._attributes = attributes
         self._size = size
@@ -180,6 +181,7 @@ class File(metaclass=NoPublicConstructor):
         self._thumbs = thumbs
         self._raw = raw
         self._client = client
+        self._dc_id = dc_id
 
     @classmethod
     def _try_from_raw_message_media(
@@ -262,6 +264,7 @@ class File(metaclass=NoPublicConstructor):
                 thumbs=raw.thumbs,
                 raw=orig_raw or raw,
                 client=client,
+                dc_id=raw.dc_id,
             )
 
         return None
@@ -298,6 +301,7 @@ class File(metaclass=NoPublicConstructor):
                 thumbs=[t for t in raw.sizes if t is not largest_thumb],
                 raw=orig_raw or raw,
                 client=client,
+                dc_id=raw.dc_id,
             )
 
         return None

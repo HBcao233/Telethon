@@ -48,9 +48,9 @@ class PeerRef(abc.ABC):
     def __init__(
         self, identifier: PeerIdentifier, authorization: PeerAuth = None
     ) -> None:
-        assert (
-            identifier >= 0
-        ), "PeerRef identifiers must be positive; see the documentation for Peers"
+        assert identifier >= 0, (
+            "PeerRef identifiers must be positive; see the documentation for Peers"
+        )
         self.identifier = identifier
         self.authorization = authorization
 
