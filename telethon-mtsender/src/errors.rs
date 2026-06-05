@@ -108,11 +108,11 @@ pub(crate) fn convert_invocation_error(err: InvocationError) -> PyErr {
         InvocationError::Deserialize(e) => DeserializeError::new_err(e.to_string()),
         InvocationError::Transport(e) => TransportError::new_err(e.to_string()),
         InvocationError::Dropped => DroppedError::new_err(
-            "Client runner not start, and the sent data packet dropped. Pleace re-create Client() to restart.".to_string(),
+            "The sender has not start, and the sent data packet was dropped.".to_string(),
         ),
         InvocationError::InvalidDc => PyRuntimeError::new_err(
             String::from(
-                "Session returns no infomation of the provided dc_id"
+                "The session returns no infomation of the provided dc_id"
             )
         ),
         InvocationError::Authentication(e) => {
