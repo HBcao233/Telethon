@@ -1,0 +1,5 @@
+[workspace]
+members = [
+  "telethon-mtsender",
+]
+resolver = "2"

@@ -7,9 +7,9 @@ A sender implementation fir pyo3 using the Mobile Transport Protocol.
 edition = "2024"
 authors = ["HBcao233 <hbcaoqaq@outlook.com>"]
 license = "MIT"
-documentation = ""
-homepage = ""
-repository = ""
+documentation = "https://telethon.dev/docs/"
+homepage = "https://telethon.dev/"
+source = "https://telethon.dev/code/"
 
 [lib]
 name = "telethon"
