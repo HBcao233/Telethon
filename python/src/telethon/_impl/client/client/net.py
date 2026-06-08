@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import signal
 import itertools
 import logging
 import platform
@@ -286,7 +287,6 @@ async def run_until_disconnected(self: Client) -> None:
     loop = asyncio.get_running_loop()
     loop.loop.add_signal_handler(signal.SIGINT, _stop_event.set)
     await _stop_event.wait()
-    
 
 
 def connected(client: Client) -> bool:

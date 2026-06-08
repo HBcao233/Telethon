@@ -7,9 +7,9 @@ from telethon._rs import (
 )
 
 __all__ = [
-    'Sender',
-    'RpcError',
-    'DroppedError',
-    'DeserializeError',
-    'TransportError',
+    "Sender",
+    "RpcError",
+    "DroppedError",
+    "DeserializeError",
+    "TransportError",
 ]

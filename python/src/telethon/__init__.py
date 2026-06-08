@@ -2,7 +2,7 @@
 The main package for the Telethon library.
 """
 
-from . import _rs
+from . import _rs  # noqa: F401
 from ._impl import tl as _tl
 from ._impl.client import Client
 from ._impl.client.errors import errors

@@ -9,3 +9,11 @@ codegen: $(VENV)
 
 dev: $(VENV)
 	maturin develop
+
+check:
+	maturin develop --extras dev
+	.venv/bin/python tools/check.py
+
+docgen: $(VENV)
+	maturin develop --extras doc
+	.venv/bin/python tools/docgen.py

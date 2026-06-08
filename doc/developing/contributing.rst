@@ -71,6 +71,24 @@ tools/
 Various utility scripts.
 Each script should have a "comment" at the top explaining what they are for.
 
+maturin
+^^^^^^^
+
+maturin used to build rust depend
+
+.. code-block:: sh
+
+    pip install maturin
+
+venv
+^^^^
+
+Create a virtual environment for develop.
+
+.. code-block:: sh
+
+    python -m venv .venv
+
 Code generation
 """""""""""""""
 
@@ -78,8 +96,8 @@ This will take ``api.tl`` and ``mtproto.tl`` files and generate ``client/_impl/t
 
 .. code-block:: sh
 
-    pip install -e generator/
-    python tools/codegen.py
+    .venv/bin/pip install -e generator/
+    .venv/bin/python tools/codegen.py
 
 Linting
 """""""
@@ -88,8 +106,8 @@ This includes format checks, type-checking and testing.
 
 .. code-block:: sh
 
-    pip install -e client/[dev]
-    python tools/check.py
+    maturin develop --extras dev
+    .venv/bin/python tools/check.py
 
 Documentation
 """""""""""""
@@ -98,8 +116,8 @@ Requires `sphinx <https://www.sphinx-doc.org>`_ and `graphviz <https://www.graph
 
 .. code-block:: sh
 
-    pip install -e client/[doc]
-    python tools/docgen.py
+    maturin develop --extras doc
+    .venv/bin/python tools/docgen.py
 
 Note that multiple optional dependency sets can be specified by separating them with a comma (``[dev,doc]``).
 
@@ -152,7 +170,7 @@ Once the code generation finishes, all files are written to disk at once.
 See :ref:`tools` above to learn how to generate code.
 
 
-client/
+python/
 ^^^^^^^
 
 The Telethon client library and documentation lives here.
@@ -167,14 +185,6 @@ The ``tl`` package sits at the bottom.
 It is where the generated code is placed.
 It also contains some of the definitions needed for the generated code to work.
 Even though all the :term:`RPC` live here, this package can't do anything by itself.
-
-The ``crypto`` package implements all the encryption and decryption rules used by Telegram.
-Details concerning the :term:`MTProto` are mostly avoided, so the package can be generally useful.
-
-The ``mtproto`` package implements the logic required to talk to Telegram.
-It is implemented in a sans-io manner.
-This package is responsible for generating an authorization key and serializing packets.
-It also contains some optimizations which are not strictly necessary when implementing the library.
 
 The ``mtsender`` package simply adds IO to ``mtproto``.
 It is responsible for driving the network, enqueuing requests, and waiting for results.
@@ -192,5 +202,5 @@ The class definition only contains documentation and calls functions defined in 
 A tool under ``tools/`` exists to make it easy to keep these two in sync.
 
 If you plan to port the library to a different language, good luck!
-You will need a code generator, the ``crypto``, ``mtproto`` and ``mtsender`` packages to have an initial working version.
+You will need a code generator, the ``mtsender`` packages to have an initial working version.
 The tests are your friend, write them too!

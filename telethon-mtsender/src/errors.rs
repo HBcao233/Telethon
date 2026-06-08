@@ -9,20 +9,14 @@ create_exception!(telethon_mtsender, DroppedError, PyException);
 create_exception!(telethon_mtsender, DeserializeError, PyException);
 create_exception!(telethon_mtsender, TransportError, PyException);
 
-#[pyclass(name = "RpcError", module = "telethon_mtsender", extends = PyException, subclass)]
+#[pyclass(name = "RpcError", module = "telethon_mtsender", extends = PyException, subclass, dict)]
 pub struct PyRpcError {
     inner: RpcError,
 }
 
 impl PyRpcError {
-    pub fn new_err(
-        code: i32,
-        name: String,
-        value: Option<u32>,
-        caused_by: Option<u32>,
-        message: Option<String>,
-    ) -> PyErr {
-        PyErr::new::<PyRpcError, _>((code, name, value, caused_by, message))
+    pub fn new_err(code: i32, name: String, value: Option<u32>, caused_by: Option<u32>) -> PyErr {
+        PyErr::new::<PyRpcError, _>((code, name, value, caused_by))
     }
 
     pub fn from(err: RpcError) -> PyErr {
@@ -37,7 +31,7 @@ impl PyRpcError {
 #[pymethods]
 impl PyRpcError {
     #[new]
-    #[pyo3(signature = (code, name, value, caused_by=None))]
+    #[pyo3(signature = (code, name, value=None, caused_by=None))]
     fn new(code: i32, name: String, value: Option<u32>, caused_by: Option<u32>) -> Self {
         Self {
             inner: RpcError {
@@ -54,14 +48,29 @@ impl PyRpcError {
         self.inner.code
     }
 
+    #[setter(code)]
+    fn set_code(&mut self, code: i32) {
+        self.inner.code = code;
+    }
+
     #[getter]
     fn name(&self) -> String {
         self.inner.name.clone()
     }
 
+    #[setter(name)]
+    fn set_name(&mut self, name: String) {
+        self.inner.name = name;
+    }
+
     #[getter]
     fn value(&self) -> Option<u32> {
         self.inner.value
+    }
+
+    #[setter(value)]
+    fn set_value(&mut self, value: Option<u32>) {
+        self.inner.value = value;
     }
 
     #[getter]
@@ -74,6 +83,7 @@ impl PyRpcError {
         self.inner.caused_by = constructor_id
     }
 
+    #[pyo3(name = "is_rpc")]
     fn is(&self, rpc_error: &str) -> bool {
         self.inner.is(rpc_error)
     }
@@ -110,11 +120,9 @@ pub(crate) fn convert_invocation_error(err: InvocationError) -> PyErr {
         InvocationError::Dropped => DroppedError::new_err(
             "The sender has not start, and the sent data packet was dropped.".to_string(),
         ),
-        InvocationError::InvalidDc => PyRuntimeError::new_err(
-            String::from(
-                "The session returns no infomation of the provided dc_id"
-            )
-        ),
+        InvocationError::InvalidDc => PyRuntimeError::new_err(String::from(
+            "The session returns no infomation of the provided dc_id",
+        )),
         InvocationError::Authentication(e) => {
             PyRuntimeError::new_err(format!("Authentication: {}", e))
         }

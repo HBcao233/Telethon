@@ -1,3 +1,3 @@
 # Developing
 
-See [Contributing](./client/doc/developing/contributing.rst).
+See [Contributing](./doc/developing/contributing.rst).

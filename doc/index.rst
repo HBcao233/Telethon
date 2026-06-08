@@ -1,4 +1,4 @@
-.. |svglogo| image:: ../../logo.svg
+.. |svglogo| image:: ../logo.svg
     :width: 24pt
     :height: 24pt
 

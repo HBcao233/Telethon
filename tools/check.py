@@ -16,9 +16,9 @@ def run(*args: str) -> int:
 def main() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         exit(
-            run("mypy", "--strict", ".")
+            run("mypy", "--strict", "python")
             or run("ruff", "check", ".")
-            or run("sphinx", "-M", "dummy", "client/doc", tmp_dir, "-n", "-W")
+            or run("sphinx", "-M", "dummy", "doc", tmp_dir, "-n", "-W")
             or run("pytest", ".", "-m", "not net")
         )
 
