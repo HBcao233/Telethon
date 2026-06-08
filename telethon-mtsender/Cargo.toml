@@ -12,14 +12,14 @@ homepage = ""
 repository = ""
 
 [lib]
-name = "_rs"
+name = "telethon"
 path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-grammers-tl-types = { git = "https://codeberg.org/Lonami/grammers.git", rev = "9cd066ffa2" }
-grammers-mtproto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "9cd066ffa2" }
-grammers-mtsender = { git = "https://codeberg.org/Lonami/grammers.git", rev = "9cd066ffa2" }
+grammers-tl-types = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1e448a3a7b" }
+grammers-mtproto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1e448a3a7b" }
+grammers-mtsender = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1e448a3a7b" }
 
 tokio = { version = "1.49.0", default-features = false, features = ["io-util", "sync", "time", "net", "macros", "rt", "rt-multi-thread", "signal", "fs"] }
 

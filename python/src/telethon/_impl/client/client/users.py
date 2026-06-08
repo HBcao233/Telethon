@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Sequence
 
-from ...mtproto import RpcError
-from ...session import GroupRef, PeerRef, UserRef
-from ...tl import abcs, functions, types
-from ..types import AsyncList, Peer, User, build_chat_map, expand_peer, peer_id
+from telethon._impl.mtsender import RpcError
+from telethon._impl.session import GroupRef, PeerRef, UserRef
+from telethon._impl.tl import abcs, functions, types
+from telethon._impl.client.types import AsyncList, Peer, User, build_chat_map, expand_peer, peer_id
 
 if TYPE_CHECKING:
     from .client import Client

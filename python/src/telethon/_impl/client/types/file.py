@@ -164,11 +164,11 @@ class File(metaclass=NoPublicConstructor):
         photo: bool,
         muted: bool,
         input_media: abcs.InputMedia,
-        thumb: Optional[abcs.PhotoSize],
-        thumbs: Optional[Sequence[abcs.PhotoSize]],
-        raw: Optional[abcs.MessageMedia | abcs.Photo | abcs.Document],
-        client: Optional[Client],
-        dc_id: Optional[int],
+        thumb: Optional[abcs.PhotoSize] = None,
+        thumbs: Optional[Sequence[abcs.PhotoSize]] = None,
+        raw: Optional[abcs.MessageMedia | abcs.Photo | abcs.Document] = None,
+        client: Optional[Client] = None,
+        dc_id: Optional[int] = None,
     ) -> None:
         self._attributes = attributes
         self._size = size

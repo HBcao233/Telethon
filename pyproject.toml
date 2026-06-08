@@ -1,6 +1,5 @@
-
 [project]
-name = "Telethon"
+name = "telethon"
 description = "Full-featured Telegram client library"
 authors = [
   { name="Lonami", email="totufals@hotmail.com" },
@@ -19,7 +18,6 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-  "telethon-mtsender",
   "pyaes~=1.6",
   "rsa~=4.9",
   "markdown-it-py~=3.0",
@@ -47,15 +45,28 @@ doc = [
 "Bug Tracker" = "https://telethon.dev/issues/"
 
 [build-system]
-requires = [
-    "setuptools>=61.0",
-    "typing-extensions~=4.12.2"
-]
-build-backend = "backend"
-backend-path = ["build_backend"]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "telethon._rs"
+manifest-path = "telethon-mtsender/Cargo.toml"
+python-source = "python/src/"
 
 [tool.setuptools.dynamic]
 version = {attr = "telethon.version.__version__"}
+
+[tool.pytest.ini_options]
+# Only look for tests in these directories.
+testpaths = ["python/tests"]
+
+# Exclude path
+norecursedirs = [
+  ".git",
+  "target",
+  ".venv",
+]
 
 [tool.ruff]
 exclude = ["doc"]

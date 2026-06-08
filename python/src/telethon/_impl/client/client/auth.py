@@ -4,8 +4,7 @@ import getpass
 import re
 from typing import TYPE_CHECKING, Optional
 
-from ...crypto import two_factor_auth
-from telethon_mtsender import RpcError
+from telethon._impl.mtsender import RpcError
 from ...session import DataCenter
 from ...session import User as SessionUser
 from ...tl import abcs, functions, types

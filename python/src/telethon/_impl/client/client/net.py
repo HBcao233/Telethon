@@ -8,12 +8,9 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional, TypeVar
 
-from telethon_mtsender import Sender, RpcError
+from telethon._impl.mtsender import Sender, RpcError
 
 from ....version import __version__
-from ...mtproto import BadStatusError, Full
-from ...mtsender import Connector, ReconnectionPolicy
-from ...mtsender import connect as do_connect_sender
 from ...session import DataCenter
 from ...session import User as SessionUser
 from ...tl import LAYER, Request, abcs, functions, types
@@ -47,15 +44,15 @@ class Config:
     api_id: int
     api_hash: str
     base_logger: logging.Logger
-    connector: Connector
-    reconnection_policy: Optional[ReconnectionPolicy] = None
+    # connector: Connector
+    # reconnection_policy: Optional[ReconnectionPolicy] = None
     device_model: str = field(default_factory=default_device_model)
     system_version: str = field(default_factory=default_system_version)
     app_version: str = __version__
     system_lang_code: str = "en"
     lang_code: str = "en"
     catch_up: bool = False
-    datacenter: Optional[DataCenter] = None
+    # datacenter: Optional[DataCenter] = None
     flood_sleep_threshold: int = 60
     update_queue_limit: Optional[int] = None
 
@@ -179,7 +176,7 @@ async def connect(self: Client) -> None:
     if session := await self._storage.load():
         self._session = session
 
-    datacenter = self._config.datacenter or DataCenter(
+    datacenter = DataCenter(
         id=self._session.user.dc if self._session.user else DEFAULT_DC
     )
     sender, self._session.dcs = await connect_sender(

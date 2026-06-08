@@ -9,8 +9,7 @@ from typing import Any, Dict, Literal, List, Optional, Sequence, Type, TypeVar
 from typing_extensions import Self
 
 from ....version import __version__ as default_version
-from ...mtsender import Connector, Sender
-from ...mtsender.reconnection import ReconnectionPolicy
+from telethon._impl.mtsender import Sender
 from ...session import (
     ChannelRef,
     ChatHashCache,
@@ -217,9 +216,6 @@ class Client:
         app_version: Optional[str] = None,
         system_lang_code: Optional[str] = None,
         lang_code: Optional[str] = None,
-        datacenter: Optional[DataCenter] = None,
-        connector: Optional[Connector] = None,
-        reconnection_policy: Optional[ReconnectionPolicy] = None,
     ) -> None:
         assert __package__
         base_logger = logger or logging.getLogger(__package__[: __package__.index(".")])
@@ -245,14 +241,14 @@ class Client:
             system_lang_code=system_lang_code or "en",
             lang_code=lang_code or "en",
             catch_up=catch_up or False,
-            datacenter=datacenter,
+            # datacenter=datacenter,
             flood_sleep_threshold=(
                 60 if flood_sleep_threshold is None else flood_sleep_threshold
             ),
             update_queue_limit=update_queue_limit,
             base_logger=base_logger,
-            connector=connector or (lambda ip, port: asyncio.open_connection(ip, port)),
-            reconnection_policy=reconnection_policy,
+            # connector=connector or (lambda ip, port: asyncio.open_connection(ip, port)),
+            # reconnection_policy=reconnection_policy,
         )
 
         self._session = Session()
