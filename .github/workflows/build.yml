@@ -14,6 +14,7 @@ on:
       - '.gitignore'
       - 'LICENSE'
       - 'Makefile'
+      - 'generator/**'
     tags:
       - 'v*'
   pull_request:
@@ -24,6 +25,7 @@ on:
       - '.gitignore'
       - 'LICENSE'
       - 'Makefile'
+      - 'generator/**'
   workflow_dispatch:
 
 permissions:
