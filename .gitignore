@@ -19,4 +19,6 @@ build/
 **/mtproto/functions/
 **/mtproto/types/
 **/testbed.py
-*.session
+*.session*
+target/
+.coverage

@@ -164,4 +164,14 @@ def generate_function(writer: SourceWriter, defn: Definition) -> None:
                 generate_normal_param_write(
                     writer, tmp_names, "_buffer", param.name, param.ty
                 )
-    writer.write("return Request(b'' + _buffer)")
+
+    generic = ""
+    for p in defn.params:
+        if isinstance(p.ty, NormalParameter) and p.ty.ty.generic_ref:
+            generic = p.name
+            break
+
+    if not generic:
+        writer.write("return Request(_buffer)")
+    else:
+        writer.write(f"return Request(_buffer, target_cid={generic}.target_cid)")

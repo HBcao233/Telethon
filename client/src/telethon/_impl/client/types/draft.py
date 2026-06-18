@@ -214,8 +214,8 @@ class Draft(metaclass=NoPublicConstructor):
                 out=result.out,
                 id=result.id,
                 from_id=(
-                    types.PeerUser(user_id=self._client._session.user.id)
-                    if self._client._session.user
+                    types.PeerUser(user_id=self._client.me.id)
+                    if self._client.me
                     else None
                 ),
                 peer_id=self._peer_ref()._to_peer(),

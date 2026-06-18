@@ -2,8 +2,8 @@ from typing import Optional
 
 from typing_extensions import Self
 
-from ....session import UserRef
-from ....tl import abcs, types
+from telethon._impl.session import PeerRef
+from telethon._impl.tl import abcs, types
 from ..meta import NoPublicConstructor
 from .peer import Peer
 
@@ -46,6 +46,14 @@ class User(Peer, metaclass=NoPublicConstructor):
                     close_friend=False,
                     stories_hidden=False,
                     stories_unavailable=False,
+                    contact_require_premium=False,
+                    bot_business=False,
+                    bot_has_main_app=False,
+                    bot_forum_view=False,
+                    bot_forum_can_manage_topics=False,
+                    bot_can_manage_bots=False,
+                    bot_guestchat=False,
+                    bot_guard=False,
                     id=user.id,
                     access_hash=None,
                     first_name=None,
@@ -61,6 +69,11 @@ class User(Peer, metaclass=NoPublicConstructor):
                     emoji_status=None,
                     usernames=None,
                     stories_max_id=None,
+                    color=None,
+                    profile_color=None,
+                    bot_active_users=None,
+                    bot_verification_icon=None,
+                    send_paid_messages_stars=None,
                 )
             )
         elif isinstance(user, types.User):
@@ -73,6 +86,10 @@ class User(Peer, metaclass=NoPublicConstructor):
     @property
     def id(self) -> int:
         return self._raw.id
+
+    @property
+    def is_self(self) -> bool:
+        return self._raw.self
 
     @property
     def name(self) -> str:
@@ -90,11 +107,11 @@ class User(Peer, metaclass=NoPublicConstructor):
         return self._raw.username
 
     @property
-    def ref(self) -> UserRef:
-        return UserRef(self._raw.id, self._raw.access_hash)
+    def ref(self) -> PeerRef:
+        return PeerRef(self._raw.id, self._raw.access_hash)
 
     @property
-    def _ref(self) -> UserRef:
+    def _ref(self) -> PeerRef:
         return self.ref
 
     # endregion Overrides

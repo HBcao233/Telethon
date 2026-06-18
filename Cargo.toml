@@ -1,0 +1,47 @@
+[package]
+name = "telethon"
+version = "0.0.1"
+description = """
+A sender implementation for pyo3 using the Mobile Transport Protocol.
+"""
+edition = "2024"
+authors = [
+    "HBcao233 <hbcaoqaq@outlook.com>",
+    "Lonami <totufals@hotmail.com>",
+]
+license = "MIT OR Apache-2.0"
+documentation = "https://telethon.dev/docs/"
+homepage = "https://telethon.dev/"
+repository = "https://codeberg.org/Lonami/grammers"
+
+exclude = [
+    "dist-doc/",
+    "benches/",
+    "client/doc/",
+    "client/tests/",
+    "*.session*",
+    'pytest.ini',
+    "htmlcov/",
+]
+
+build = "rust/build.rs"
+
+[lib]
+name = "telethon"
+path = "rust/src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+grammers-tl-types = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
+grammers-mtproto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
+grammers-mtsender = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
+grammers-session = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b", default-features = false }
+grammers-crypto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
+
+tokio = { version = "1.49.0", default-features = false, features = ["io-util", "sync", "time", "net", "macros", "rt", "rt-multi-thread", "signal", "fs"] }
+
+pyo3 = { version = "0.28", features = ["experimental-async"] }
+pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
+
+[build-dependencies]
+pyo3-build-config = "0.28"

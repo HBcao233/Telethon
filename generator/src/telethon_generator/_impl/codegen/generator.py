@@ -164,17 +164,21 @@ def generate(fs: FakeFs, tl: ParsedTl) -> None:
         if function_path not in fs:
             writer.write("# pyright: reportUnusedImport=false")
             writer.write("import struct")
-            writer.write("from typing import Optional, Sequence")
+            writer.write("from typing import Optional, Sequence, TypeVar")
             writer.write("from typing_extensions import Self")
             writer.write("from .. import abcs")
             writer.write("from ..core import Request, serialize_bytes_to")
             writer.write("_bytes = bytes | bytearray | memoryview")
+            writer.write('Return = TypeVar("Return")')
 
         #   def name(params, ...)
         required_params = [p for p in functiondef.params if not is_computed(p.ty)]
         params = "".join(f", {p.name}: {param_type_fmt(p.ty)}" for p in required_params)
         star = "*" if params else ""
-        return_ty = param_type_fmt(NormalParameter(ty=functiondef.ty, flag=None))
+        if functiondef.ty.generic_ref:
+            return_ty = "Return"
+        else:
+            return_ty = param_type_fmt(NormalParameter(ty=functiondef.ty, flag=None))
         writer.write(
             f"def {to_method_name(functiondef.name)}({star}{params}) -> Request[{return_ty}]:"
         )

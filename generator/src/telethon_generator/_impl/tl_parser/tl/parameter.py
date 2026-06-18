@@ -35,6 +35,9 @@ class Parameter:
         if not name:
             raise ValueError("empty")
 
+        if name == "from":
+            name = "from_"
+
         return cls(name=name, ty=BaseParameter.from_str(ty))
 
     def __str__(self) -> str:

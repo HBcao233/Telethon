@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import Self
 
-from ...session import PeerRef, UserRef
-from ...tl import abcs, functions, types
+from telethon._impl.session import PeerRef
+from telethon._impl.tl import abcs, functions, types
 from ..types import InlineResult, NoPublicConstructor, Peer, User
 
 if TYPE_CHECKING:
@@ -69,15 +69,17 @@ class InlineResults(metaclass=NoPublicConstructor):
 
 async def inline_query(
     self: Client,
-    bot: User | UserRef,
+    bot: User | PeerRef,
     /,
     query: str = "",
     *,
     peer: Optional[Peer | PeerRef] = None,
 ) -> AsyncIterator[InlineResult]:
+    input_user = bot._ref._to_input_user()
+
     return InlineResults._create(
         self,
-        bot._ref._to_input_user(),
+        input_user,
         query,
         peer._ref if peer else None,
     )

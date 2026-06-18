@@ -3,8 +3,8 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, Optional, Sequence
 
-from ...session import ChannelRef, GroupRef, PeerRef, UserRef
-from ...tl import functions, types
+from telethon._impl.session import PeerRef, PeerKind
+from telethon._impl.tl import functions, types
 from ..types import (
     AdminRight,
     AsyncList,
@@ -28,7 +28,7 @@ class ParticipantList(AsyncList[Participant]):
     def __init__(
         self,
         client: Client,
-        peer: ChannelRef | GroupRef,
+        peer: PeerRef,
     ) -> None:
         super().__init__()
         self._client = client
@@ -37,7 +37,7 @@ class ParticipantList(AsyncList[Participant]):
         self._seen: set[int] = set()
 
     async def _fetch_next(self) -> None:
-        if isinstance(self._peer, ChannelRef):
+        if self._peer.id.kind == PeerKind.Channel:
             chanp = await self._client(
                 functions.channels.get_participants(
                     channel=self._peer._to_input_channel(),
@@ -96,7 +96,7 @@ class ParticipantList(AsyncList[Participant]):
 
 
 def get_participants(
-    self: Client, chat: Group | Channel | GroupRef | ChannelRef, /
+    self: Client, chat: Group | Channel | PeerRef, /
 ) -> AsyncList[Participant]:
     return ParticipantList(self, chat._ref)
 
@@ -105,7 +105,7 @@ class RecentActionList(AsyncList[RecentAction]):
     def __init__(
         self,
         client: Client,
-        peer: ChannelRef | GroupRef,
+        peer: PeerRef,
     ) -> None:
         super().__init__()
         self._client = client
@@ -113,7 +113,7 @@ class RecentActionList(AsyncList[RecentAction]):
         self._offset = 0
 
     async def _fetch_next(self) -> None:
-        if not isinstance(self._peer, ChannelRef):
+        if self._peer.id.kind != PeerKind.Channel:
             return  # small group chats have no recent actions
 
         result = await self._client(
@@ -138,7 +138,7 @@ class RecentActionList(AsyncList[RecentAction]):
 
 
 def get_admin_log(
-    self: Client, chat: Group | Channel | GroupRef | ChannelRef, /
+    self: Client, chat: Group | Channel | PeerRef, /
 ) -> AsyncList[RecentAction]:
     return RecentActionList(self, chat._ref)
 
@@ -155,7 +155,7 @@ class ProfilePhotoList(AsyncList[File]):
         self._search_iter: Optional[SearchList] = None
 
     async def _fetch_next(self) -> None:
-        if isinstance(self._peer, UserRef):
+        if self._peer.id.kind == PeerKind.User:
             result = await self._client(
                 functions.photos.get_user_photos(
                     user_id=self._peer._to_input_user(),
@@ -187,14 +187,14 @@ def get_profile_photos(self: Client, peer: Peer | PeerRef, /) -> AsyncList[File]
 
 async def set_participant_admin_rights(
     self: Client,
-    chat: Group | Channel | GroupRef | ChannelRef,
+    chat: Group | Channel | PeerRef,
     /,
-    participant: User | UserRef,
+    participant: User | PeerRef,
     rights: Sequence[AdminRight],
 ) -> None:
     chat = chat._ref
     user = participant._ref
-    if isinstance(chat, ChannelRef):
+    if chat.id.kind == PeerKind.Channel:
         admin_rights = AdminRight._set_to_raw(set(rights))
         await self(
             functions.channels.edit_admin(
@@ -216,7 +216,7 @@ async def set_participant_admin_rights(
 
 async def set_participant_restrictions(
     self: Client,
-    chat: Group | Channel | GroupRef | ChannelRef,
+    chat: Group | Channel | PeerRef,
     /,
     participant: Peer | PeerRef,
     restrictions: Sequence[ChatRestriction],
@@ -225,7 +225,7 @@ async def set_participant_restrictions(
 ) -> None:
     chat = chat._ref
     peer = participant._ref
-    if isinstance(chat, ChannelRef):
+    if chat.id.kind == PeerKind.Channel:
         banned_rights = ChatRestriction._set_to_raw(
             set(restrictions),
             until_date=int(until.timestamp()) if until else 0x7FFFFFFF,
@@ -237,7 +237,7 @@ async def set_participant_restrictions(
                 banned_rights=banned_rights,
             )
         )
-    elif isinstance(peer, UserRef):
+    elif peer.id.kind == PeerKind.User:
         if restrictions:
             await self(
                 functions.messages.delete_chat_user(

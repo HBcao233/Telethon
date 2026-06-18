@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Sequence
 
 from typing_extensions import Self
 
-from ...session import ChannelRef, GroupRef
+from ...session import PeerRef
 from ...tl import abcs, types
 from .admin_right import AdminRight
 from .chat_restriction import ChatRestriction
@@ -26,7 +26,7 @@ class Participant(metaclass=NoPublicConstructor):
     def __init__(
         self,
         client: Client,
-        chat: GroupRef | ChannelRef,
+        chat: PeerRef,
         participant: (
             types.ChannelParticipant
             | types.ChannelParticipantSelf
@@ -49,7 +49,7 @@ class Participant(metaclass=NoPublicConstructor):
     def _from_raw_channel(
         cls,
         client: Client,
-        chat: ChannelRef,
+        chat: PeerRef,
         participant: abcs.ChannelParticipant,
         chat_map: dict[int, Peer],
     ) -> Self:
@@ -72,7 +72,7 @@ class Participant(metaclass=NoPublicConstructor):
     def _from_raw_chat(
         cls,
         client: Client,
-        chat: GroupRef,
+        chat: PeerRef,
         participant: abcs.ChatParticipant,
         chat_map: dict[int, Peer],
     ) -> Self:

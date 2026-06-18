@@ -4,30 +4,22 @@ import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Literal, Optional, Sequence, Type, TypeVar
+from typing import Any, Literal, List, Optional, Sequence, Type, TypeVar
 
 from typing_extensions import Self
 
-from ....version import __version__ as default_version
-from ...mtsender import Connector, Sender
-from ...mtsender.reconnection import ReconnectionPolicy
-from ...session import (
-    ChannelRef,
-    ChatHashCache,
-    DataCenter,
-    GroupRef,
-    MemorySession,
-    MessageBox,
+from telethon.version import __version__ as default_version
+from telethon._impl.mtsender import SenderPool
+from telethon._impl.session import (
+    # MemorySession, TODO
     PeerRef,
     Session,
     SqliteSession,
-    Storage,
-    UserRef,
 )
-from ...tl import Request, abcs
-from ..events import Event
-from ..events.filters import FilterType
-from ..types import (
+from telethon._impl.tl import Request, abcs
+from telethon._impl.client.events import Event
+from telethon._impl.client.events.filters import FilterType
+from telethon._impl.client.types import (
     AdminRight,
     AlbumBuilder,
     AsyncList,
@@ -100,8 +92,10 @@ from .net import (
     default_device_model,
     default_system_version,
     disconnect,
-    invoke_request,
+    invoke,
+    invoke_in_dc,
     run_until_disconnected,
+    copy_auth_to_dc,
 )
 from .updates import (
     add_event_handler,
@@ -200,7 +194,7 @@ class Client:
 
     def __init__(
         self,
-        session: Optional[str | Path | Storage],
+        session: Optional[str | Path | Session],
         api_id: int,
         api_hash: Optional[str] = None,
         *,
@@ -209,65 +203,59 @@ class Client:
         flood_sleep_threshold: Optional[int] = None,
         logger: Optional[logging.Logger] = None,
         update_queue_limit: Optional[int] = None,
+        use_ipv6: bool = False,
         device_model: Optional[str] = None,
         system_version: Optional[str] = None,
         app_version: Optional[str] = None,
         system_lang_code: Optional[str] = None,
         lang_code: Optional[str] = None,
-        datacenter: Optional[DataCenter] = None,
-        connector: Optional[Connector] = None,
-        reconnection_policy: Optional[ReconnectionPolicy] = None,
+        # TODO: custom DcOption
+        # datacenter: Optional[DcOption] = None
     ) -> None:
         assert __package__
         base_logger = logger or logging.getLogger(__package__[: __package__.index(".")])
 
-        self._sender: Optional[Sender] = None
+        self.me: Optional[User] = None
+        self._sender: Optional[SenderPool] = None
+        self._auth_copied_to_dcs: List[int] = []
 
-        if isinstance(session, Storage):
-            storage = session
+        if isinstance(session, Session):
+            self._session = session
         elif session is None:
-            storage = MemorySession()
+            # TODO: MemorySession()
+            self._session = SqliteSession(":memory:")
         else:
-            storage = SqliteSession(session)
-
-        self._storage = storage
+            self._session = SqliteSession(Path(session).with_suffix(".session"))
 
         self._config = Config(
             api_id=api_id,
             api_hash=api_hash or "",
+            use_ipv6=use_ipv6,
             device_model=device_model or default_device_model(),
             system_version=system_version or default_system_version(),
             app_version=app_version or default_version,
             system_lang_code=system_lang_code or "en",
             lang_code=lang_code or "en",
             catch_up=catch_up or False,
-            datacenter=datacenter,
+            # datacenter=datacenter,
             flood_sleep_threshold=(
                 60 if flood_sleep_threshold is None else flood_sleep_threshold
             ),
             update_queue_limit=update_queue_limit,
             base_logger=base_logger,
-            connector=connector or (lambda ip, port: asyncio.open_connection(ip, port)),
-            reconnection_policy=reconnection_policy,
+            # TODO
+            # reconnection_policy=reconnection_policy,
         )
 
-        self._session = Session()
-
-        self._message_box = MessageBox(base_logger=base_logger)
-        self._chat_hashes = ChatHashCache(None)
         self._last_update_limit_warn: Optional[float] = None
         self._updates: asyncio.Queue[tuple[abcs.Update, dict[int, Peer]]] = (
             asyncio.Queue(maxsize=self._config.update_queue_limit or 0)
         )
-        self._dispatcher: Optional[asyncio.Task[None]] = None
         self._handlers: dict[
             Type[Event],
             list[tuple[Callable[[Any], Awaitable[Any]], Optional[FilterType]]],
         ] = {}
         self._check_all_handlers = check_all_handlers
-
-        if self._session.user and self._config.catch_up and self._session.state:
-            self._message_box.load(self._session.state)
 
     # Begin partially @generated
 
@@ -660,7 +648,7 @@ class Client:
         return await forward_messages(self, target, message_ids, source)
 
     def get_admin_log(
-        self, chat: Group | Channel | GroupRef | ChannelRef, /
+        self, chat: Group | Channel | PeerRef, /
     ) -> AsyncList[RecentAction]:
         """
         Get the recent actions from the administrator's log.
@@ -898,7 +886,7 @@ class Client:
         return get_messages_with_ids(self, chat, message_ids)
 
     def get_participants(
-        self, chat: Group | Channel | GroupRef | ChannelRef, /
+        self, chat: Group | Channel | PeerRef, /
     ) -> AsyncList[Participant]:
         """
         Get the participants in a group or channel, along with their permissions.
@@ -945,7 +933,7 @@ class Client:
 
     async def inline_query(
         self,
-        bot: User | UserRef,
+        bot: User | PeerRef,
         /,
         query: str = "",
         *,
@@ -1289,6 +1277,9 @@ class Client:
         Connection errors will be raised from this method if they occur.
         """
         await run_until_disconnected(self)
+
+    async def copy_auth_to_dc(self, target_dc_id: int):
+        await copy_auth_to_dc(self, target_dc_id)
 
     def search_all_messages(
         self,
@@ -1884,9 +1875,9 @@ class Client:
 
     async def set_participant_admin_rights(
         self,
-        chat: Group | Channel | GroupRef | ChannelRef,
+        chat: Group | Channel | PeerRef,
         /,
-        participant: User | UserRef,
+        participant: User | PeerRef,
         rights: Sequence[AdminRight],
     ) -> None:
         """
@@ -1928,7 +1919,7 @@ class Client:
 
     async def set_participant_restrictions(
         self,
-        chat: Group | Channel | GroupRef | ChannelRef,
+        chat: Group | Channel | PeerRef,
         /,
         participant: Peer | PeerRef,
         restrictions: Sequence[ChatRestriction],
@@ -2077,8 +2068,14 @@ class Client:
     ) -> tuple[abcs.InputFile, str]:
         return await upload(self, fd, size, name)
 
+    async def invoke(self, request: Request[Return]) -> Return:
+        return await invoke(self, request)
+
+    async def invoke_in_dc(self, dc_id: int, request: Request[Return]) -> Return:
+        return await invoke_in_dc(self, dc_id, request)
+
     async def __call__(self, request: Request[Return]) -> Return:
-        return await invoke_request(self, request)
+        return await invoke(self, request)
 
     async def __aenter__(self) -> Self:
         await connect(self)

@@ -1,23 +1,17 @@
-from .reconnection import ReconnectionPolicy
-from .sender import (
-    MAXIMUM_DATA,
-    NO_PING_DISCONNECT,
-    PING_DELAY,
-    AsyncReader,
-    AsyncWriter,
-    Connector,
+from telethon._rs import (
     Sender,
-    connect,
+    SenderPool,
+    RpcError,
+    DroppedError,
+    DeserializeError,
+    TransportError,
 )
 
 __all__ = [
-    "MAXIMUM_DATA",
-    "NO_PING_DISCONNECT",
-    "PING_DELAY",
-    "AsyncReader",
-    "AsyncWriter",
-    "Connector",
     "Sender",
-    "connect",
-    "ReconnectionPolicy",
+    "SenderPool",
+    "RpcError",
+    "DroppedError",
+    "DeserializeError",
+    "TransportError",
 ]

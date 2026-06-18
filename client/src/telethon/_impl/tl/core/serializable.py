@@ -1,4 +1,4 @@
-import abc
+from abc import ABC, abstractmethod
 import struct
 from typing import Protocol
 
@@ -17,11 +17,11 @@ def obj_repr(self: HasSlots) -> str:
     return f"{self.__class__.__name__}({params})"
 
 
-class Serializable(abc.ABC):
+class Serializable(ABC):
     __slots__: tuple[str, ...] = ()
 
     @classmethod
-    @abc.abstractmethod
+    @abstractmethod
     def constructor_id(cls) -> int:
         pass
 
@@ -33,7 +33,7 @@ class Serializable(abc.ABC):
         buffer += struct.pack("<I", self.constructor_id())
         self._write_to(buffer)
 
-    @abc.abstractmethod
+    @abstractmethod
     def _write_to(self, buffer: bytearray) -> None:
         pass
 

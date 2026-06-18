@@ -1,7 +1,7 @@
 import re
 from typing import Type
 
-from ..mtproto import RpcError
+from telethon._impl.mtsender import RpcError
 
 
 def canonicalize_code(code: int) -> int:

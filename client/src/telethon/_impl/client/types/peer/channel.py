@@ -2,8 +2,8 @@ from typing import Optional
 
 from typing_extensions import Self
 
-from ....session import ChannelRef
-from ....tl import abcs, types
+from telethon._impl.session import PeerRef
+from telethon._impl.tl import abcs, types
 from ..meta import NoPublicConstructor
 from .peer import Peer
 
@@ -53,11 +53,11 @@ class Channel(Peer, metaclass=NoPublicConstructor):
         return getattr(self._raw, "username", None)
 
     @property
-    def ref(self) -> ChannelRef:
-        return ChannelRef(self._raw.id, self._raw.access_hash)
+    def ref(self) -> PeerRef:
+        return PeerRef(self._raw.id, self._raw.access_hash)
 
     @property
-    def _ref(self) -> ChannelRef:
+    def _ref(self) -> PeerRef:
         return self.ref
 
     # endregion Overrides

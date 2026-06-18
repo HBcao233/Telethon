@@ -3,9 +3,9 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING, Optional
 
-from ...session import PeerRef
-from ...tl import functions, types
-from ..types import (
+from telethon._impl.session import PeerRef
+from telethon._impl.tl import abcs, functions, types
+from telethon._impl.client.types import (
     AsyncList,
     Dialog,
     Draft,
@@ -127,21 +127,42 @@ async def edit_draft(
     markdown: Optional[str] = None,
     html: Optional[str] = None,
     link_preview: bool = False,
-    reply_to: Optional[int] = None,
+    invert_media: bool = False,
+    reply_to: Optional[int | abcs.InputReplyTo] = None,
+    media: Optional[abcs.InputMedia] = None,
+    effect: Optional[int] = None,
+    suggested_post: Optional[abcs.SuggestedPost] = None,
+    rich_message: Optional[abcs.InputRichMessage] = None,
 ) -> Draft:
     peer = peer._ref
     message, entities = parse_message(
         text=text, markdown=markdown, html=html, allow_empty=False
     )
+    if isinstance(reply_to, int):
+        reply_to = types.InputReplyToMessage(
+            reply_to_msg_id=reply_to,
+            top_msg_id=None,
+            reply_to_peer_id=None,
+            quote_text=None,
+            quote_entities=None,
+            quote_offset=None,
+            monoforum_peer_id=None,
+            todo_item_id=None,
+            poll_option=None,
+        )
 
     result = await self(
         functions.messages.save_draft(
             no_webpage=not link_preview,
-            reply_to_msg_id=reply_to,
-            top_msg_id=None,
+            invert_media=invert_media,
+            reply_to=reply_to,
             peer=peer._to_input_peer(),
             message=message,
             entities=entities,
+            media=media,
+            effect=effect,
+            suggested_post=suggested_post,
+            rich_message=rich_message,
         )
     )
     assert result
@@ -152,10 +173,21 @@ async def edit_draft(
         top_msg_id=0,
         draft=types.DraftMessage(
             no_webpage=not link_preview,
-            reply_to_msg_id=reply_to,
+            invert_media=invert_media,
+            reply_to=reply_to,
             message=message,
             entities=entities,
             date=int(time.time()),
+            media=media,
+            effect=effect,
+            suggested_post=suggested_post,
+            # TODO: InputRichMessage to RichMessage
+            rich_message=types.RichMessage(
+                part=False,
+                blocks=[],
+                photos=[],
+                documents=[],
+            ),
         ),
         chat_map={},
     )

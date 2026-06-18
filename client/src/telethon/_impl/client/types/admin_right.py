@@ -60,6 +60,12 @@ class AdminRight(Enum):
     DELETE_STORIES = "delete_stories"
     """Allows deleting stories in a channel."""
 
+    MANAGE_DIRECT_MESSAGES = "manage_direct_messages"
+    """Allows managing the direct messages monoforum and decline suggested posts."""
+
+    MANAGE_RANKS = "manage_ranks"
+    """Allows managing the ranks of group participants"""
+
     @classmethod
     def _from_raw(cls, rights: abcs.ChatAdminRights) -> set[AdminRight]:
         assert isinstance(rights, types.ChatAdminRights)
@@ -79,6 +85,8 @@ class AdminRight(Enum):
             cls.POST_STORIES if rights.post_stories else None,
             cls.EDIT_STORIES if rights.edit_stories else None,
             cls.DELETE_STORIES if rights.delete_stories else None,
+            cls.MANAGE_DIRTCT_MESSAGES if rights.manage_direct_messages else None,
+            cls.MANAGE_RANKS if rights.manage_ranks else None,
         )
         return set(filter(None, iter(all_rights)))
 

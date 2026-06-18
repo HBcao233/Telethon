@@ -1,7 +1,7 @@
 import abc
 from typing import Optional
 
-from ....session import ChannelRef, GroupRef, UserRef
+from telethon._impl.session import PeerRef
 
 
 class Peer(abc.ABC):
@@ -46,7 +46,7 @@ class Peer(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def ref(self) -> UserRef | GroupRef | ChannelRef:
+    def ref(self) -> PeerRef:
         """
         The reusable reference to this user, group or channel.
 
@@ -59,7 +59,7 @@ class Peer(abc.ABC):
         """
 
     @property
-    def _ref(self) -> UserRef | GroupRef | ChannelRef:
+    def _ref(self) -> PeerRef:
         """
         Private alias that also exists in refs to make conversion trivial.
         """

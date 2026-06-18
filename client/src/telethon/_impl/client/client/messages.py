@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Literal, Optional
 
 from typing_extensions import Self
 
-from ...session import ChannelRef, PeerRef
-from ...tl import abcs, functions, types
+from telethon._impl.session import PeerRef, PeerKind
+from telethon._impl.tl import abcs, functions, types
 from ..types import (
     AsyncList,
     KeyboardType,
@@ -94,7 +94,7 @@ async def send_message(
             out=result.out,
             id=result.id,
             from_id=(
-                types.PeerUser(user_id=self._session.user.id)
+                types.PeerUser(user_id=self.me.id)
                 if self._session.user
                 else None
             ),
@@ -161,7 +161,7 @@ async def delete_messages(
     revoke: bool = True,
 ) -> int:
     peer = chat._ref
-    if isinstance(peer, ChannelRef):
+    if peer.id.kind == PeerKind.Channel:
         affected = await self(
             functions.channels.delete_messages(
                 channel=peer._to_input_channel(), id=message_ids
@@ -335,7 +335,7 @@ class CherryPickedList(MessageList):
         if not self._ids:
             return
 
-        if isinstance(self._peer, ChannelRef):
+        if self._peer.id.kind == PeerKind.Channel:
             result = await self._client(
                 functions.channels.get_messages(
                     channel=self._peer._to_input_channel(), id=self._ids[:100]
@@ -534,22 +534,26 @@ async def unpin_message(
 
 
 async def read_message(
-    self: Client, chat: Peer | PeerRef, /, message_id: int | Literal["all"]
+    self: Client,
+    chat: Peer | PeerRef,
+    /,
+    message_id: int | Literal["all"],
 ) -> None:
     if message_id == "all":
         message_id = 0
 
-    peer = chat._ref
-    if isinstance(peer, ChannelRef):
+    if chat._ref.id.kind == PeerKind.Channel:
         await self(
             functions.channels.read_history(
-                channel=peer._to_input_channel(), max_id=message_id
+                channel=chat._ref._to_input_channel(),
+                max_id=message_id,
             )
         )
     else:
         await self(
             functions.messages.read_history(
-                peer=peer._ref._to_input_peer(), max_id=message_id
+                peer=chat._ref._to_input_peer(),
+                max_id=message_id,
             )
         )
 

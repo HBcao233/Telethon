@@ -4,13 +4,11 @@ import getpass
 import re
 from typing import TYPE_CHECKING, Optional
 
-from ...crypto import two_factor_auth
-from ...mtproto import RpcError
-from ...session import DataCenter
-from ...session import User as SessionUser
-from ...tl import abcs, functions, types
+from telethon._impl.crypto import two_factor_auth
+from telethon._impl.mtsender import RpcError
+from telethon._impl.session import PeerInfo
+from telethon._impl.tl import abcs, functions, types
 from ..types import LoginToken, PasswordToken, User
-from .net import connect_sender
 
 if TYPE_CHECKING:
     from .client import Client
@@ -26,44 +24,27 @@ async def is_authorized(self: Client) -> bool:
         raise
 
 
-async def complete_login(client: Client, auth: abcs.auth.Authorization) -> User:
-    assert client._sender
+async def complete_login(self: Client, auth: abcs.auth.Authorization) -> User:
     assert isinstance(auth, types.auth.Authorization)
     assert isinstance(auth.user, types.User)
+
     user = User._from_raw(auth.user)
-    client._session.user = SessionUser(
-        id=user.id, dc=client._sender.dc_id, bot=user.bot, username=user.username
-    )
-
-    client._chat_hashes.set_self_user(user.id, user.bot)
-
-    try:
-        state = await client(functions.updates.get_state())
-        client._message_box.set_state(state)
-        client._session.state = client._message_box.session_state()
-    except Exception:
-        pass
-
-    try:
-        await client._storage.save(client._session)
-    except Exception:
-        client._config.base_logger.exception(
-            "failed to save session upon login; you may need to login again in future runs"
+    self.me = user
+    await self._session.cache_peer(
+        PeerInfo.User(
+            id=user.id,
+            auth=user._ref.access_hash,
+            bot=user.bot,
+            is_self=True,
         )
+    )
 
     return user
 
 
 async def handle_migrate(client: Client, dc_id: Optional[int]) -> None:
-    assert client._sender
     assert dc_id is not None
-    sender, client._session.dcs = await connect_sender(
-        client._config, client._session.dcs, DataCenter(id=dc_id)
-    )
-
-    old_sender = client._sender
-    client._sender = sender
-    await old_sender.disconnect()
+    await client._session.set_home_dc_id(dc_id)
 
 
 async def bot_sign_in(self: Client, token: str) -> User:
@@ -97,6 +78,7 @@ async def request_login_code(self: Client, phone: str) -> LoginToken:
             allow_app_hash=False,
             allow_missed_call=False,
             allow_firebase=False,
+            unknown_number=False,
             logout_tokens=None,
             token=None,
             app_sandbox=None,
@@ -234,7 +216,7 @@ async def check_password(
     assert token._password.srp_id is not None
     assert token._password.srp_B is not None
 
-    two_fa = two_factor_auth.calculate_2fa(
+    m1, g_a = two_factor_auth.calculate_2fa(
         salt1=algo.salt1,
         salt2=algo.salt2,
         g=algo.g,
@@ -248,8 +230,8 @@ async def check_password(
         functions.auth.check_password(
             password=types.InputCheckPasswordSrp(
                 srp_id=token._password.srp_id,
-                A=two_fa.g_a,
-                M1=two_fa.m1,
+                A=g_a,
+                M1=m1,
             )
         )
     )
@@ -259,10 +241,3 @@ async def check_password(
 
 async def sign_out(self: Client) -> None:
     await self(functions.auth.log_out())
-
-    self._chat_hashes.clear()
-    self._message_box.reset()
-
-    self._session.user = None
-    self._session.state = None
-    await self._storage.save(self._session)

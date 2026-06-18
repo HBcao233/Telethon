@@ -2,10 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Sequence
 
-from ...mtproto import RpcError
-from ...session import GroupRef, PeerRef, UserRef
-from ...tl import abcs, functions, types
-from ..types import AsyncList, Peer, User, build_chat_map, expand_peer, peer_id
+from telethon._impl.mtsender import RpcError
+from telethon._impl.session import PeerRef, PeerKind
+from telethon._impl.tl import abcs, functions, types
+from telethon._impl.client.types import (
+    AsyncList,
+    Peer,
+    User,
+    build_chat_map,
+    expand_peer,
+    peer_id,
+)
 
 if TYPE_CHECKING:
     from .client import Client
@@ -73,12 +80,17 @@ async def resolve_peers(self: Client, peers: Sequence[Peer | PeerRef], /) -> lis
     for peer in peers:
         peer = peer._ref
         refs.append(peer)
-        if isinstance(peer, UserRef):
-            input_users.append(peer._to_input_user())
-        elif isinstance(peer, GroupRef):
-            input_chats.append(peer._to_input_chat())
-        else:
-            input_channels.append(peer._to_input_channel())
+        match peer.id.kind:
+            case PeerKind.UserSelf:
+                input_users.append(types.InputUserSelf())
+            case PeerKind.User:
+                input_users.append(peer._to_input_user())
+            case PeerKind.Chat:
+                input_chats.append(peer._to_input_chat())
+            case PeerKind.Channel:
+                input_channels.append(peer._to_input_channel())
+            case _:
+                raise ValueError("unknown PeerRef")
 
     if input_users:
         ret_users = await self(functions.users.get_users(id=input_users))

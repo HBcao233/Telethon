@@ -429,20 +429,30 @@ class FileBytesList(AsyncList[bytes]):
         super().__init__()
         self._client = client
         self._loc = file._input_location()
+        self._dc_id = (
+            file._dc_id
+            if file._dc_id is not None
+            else self._client._session.home_dc_id()
+        )
+
         self._offset = 0
         if isinstance(file._thumb, types.PhotoStrippedSize):
             self._buffer.append(expand_stripped_size(file._thumb.bytes))
             self._done = True
 
     async def _fetch_next(self) -> None:
-        result = await self._client(
+        if self._dc_id not in self._client._auth_copied_to_dcs:
+            await self._client.copy_auth_to_dc(self._dc_id)
+
+        result = await self._client.invoke_in_dc(
+            self._dc_id,
             functions.upload.get_file(
                 precise=False,
                 cdn_supported=False,
                 location=self._loc,
                 offset=self._offset,
                 limit=MAX_CHUNK_SIZE,
-            )
+            ),
         )
         assert isinstance(result, types.upload.File)
 

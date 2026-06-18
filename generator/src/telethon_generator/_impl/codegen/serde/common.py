@@ -78,7 +78,7 @@ def inner_type_fmt(ty: Type) -> str:
     elif ty.bare:
         return to_class_name(ty.name)
     elif ty.generic_ref:
-        return "_bytes"
+        return "Request[Return]"
     elif ty.name == "Object":
         return "Serializable"
     else:
@@ -101,7 +101,7 @@ def param_type_fmt(ty: BaseParameter) -> str:
     else:
         inner_ty = ty.ty
 
-    res = "_bytes" if inner_ty.name == "Object" else inner_type_fmt(inner_ty)
+    res = "Request" if inner_ty.name == "Object" else inner_type_fmt(inner_ty)
 
     if ty.ty.generic_arg:
         res = f"Sequence[{res}]"

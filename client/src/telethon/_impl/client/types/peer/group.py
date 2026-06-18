@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Sequence
 
 from typing_extensions import Self
 
-from ....session import ChannelRef, GroupRef
+from telethon._impl.session import PeerRef
 from ....tl import abcs, types
 from ..chat_restriction import ChatRestriction
 from ..meta import NoPublicConstructor
@@ -68,14 +68,12 @@ class Group(Peer, metaclass=NoPublicConstructor):
         return getattr(self._raw, "username", None)
 
     @property
-    def ref(self) -> GroupRef | ChannelRef:
-        if isinstance(self._raw, (types.ChatEmpty, types.Chat, types.ChatForbidden)):
-            return GroupRef(self._raw.id, None)
-        else:
-            return ChannelRef(self._raw.id, self._raw.access_hash)
+    def ref(self) -> PeerRef:
+        # if isinstance(self._raw, (types.ChatEmpty, types.Chat, types.ChatForbidden)):
+        return PeerRef(self._raw.id, self._raw.access_hash)
 
     @property
-    def _ref(self) -> GroupRef | ChannelRef:
+    def _ref(self) -> PeerRef:
         return self.ref
 
     # endregion Overrides

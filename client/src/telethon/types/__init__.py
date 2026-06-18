@@ -27,7 +27,19 @@ from .._impl.client.types import (
     User,
 )
 from .._impl.client.types.buttons import Button, InlineButton
-from .._impl.session import ChannelRef, GroupRef, PeerRef, UserRef
+from .._impl.session import (
+    PeerId,
+    PeerIdLike,
+    PeerAuth,
+    PeerInfo,
+    PeerKind,
+    PeerRef,
+    ChannelKind,
+    DcOption,
+    ChannelState,
+    UpdatesState,
+    UpdateState,
+)
 
 __all__ = [
     "AdminRight",
@@ -54,8 +66,15 @@ __all__ = [
     "User",
     "Button",
     "InlineButton",
-    "ChannelRef",
-    "GroupRef",
+    "PeerId",
+    "PeerIdLike",
+    "PeerAuth",
+    "PeerInfo",
+    "PeerKind",
     "PeerRef",
-    "UserRef",
+    "ChannelKind",
+    "DcOption",
+    "ChannelState",
+    "UpdatesState",
+    "UpdateState",
 ]
