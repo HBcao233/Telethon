@@ -1,7 +1,7 @@
 import abc
 from typing import Optional
 
-from telethon._impl.session import PeerRef
+from telethon._impl.session import PeerAuth, PeerId, PeerRef, PeerInfo
 
 
 class Peer(abc.ABC):
@@ -13,7 +13,7 @@ class Peer(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def id(self) -> int:
+    def id(self) -> PeerId:
         """
         The peer's integer identifier.
 
@@ -46,6 +46,10 @@ class Peer(abc.ABC):
 
     @property
     @abc.abstractmethod
+    def access_hash(self) -> PeerAuth: ...
+
+    @property
+    @abc.abstractmethod
     def ref(self) -> PeerRef:
         """
         The reusable reference to this user, group or channel.
@@ -64,3 +68,7 @@ class Peer(abc.ABC):
         Private alias that also exists in refs to make conversion trivial.
         """
         return self.ref
+
+    @property
+    @abc.abstractmethod
+    def _info(self) -> PeerInfo: ...

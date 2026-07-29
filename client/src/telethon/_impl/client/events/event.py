@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import Self
 
-from ...tl import abcs
-from ..types import NoPublicConstructor, Peer
+from telethon._impl.tl import abcs
+from ..types import NoPublicConstructor, PeerMap
 
 if TYPE_CHECKING:
     from ..client.client import Client
@@ -27,7 +27,10 @@ class Event(abc.ABC, metaclass=NoPublicConstructor):
     @classmethod
     @abc.abstractmethod
     def _try_from_update(
-        cls, client: Client, update: abcs.Update, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        update: abcs.Update,
+        chat_map: PeerMap,
     ) -> Optional[Self]:
         pass
 
@@ -47,7 +50,7 @@ class Raw(Event):
         self,
         client: Client,
         update: abcs.Update,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> None:
         self._client = client
         self._raw = update
@@ -55,9 +58,15 @@ class Raw(Event):
 
     @classmethod
     def _try_from_update(
-        cls, client: Client, update: abcs.Update, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        update: abcs.Update,
+        chat_map: PeerMap,
     ) -> Optional[Self]:
         return cls._create(client, update, chat_map)
+
+    def __str__(self) -> str:
+        return f"events.Raw(_raw={self._raw}, _chat_map={self._chat_map})"
 
 
 class Continue:

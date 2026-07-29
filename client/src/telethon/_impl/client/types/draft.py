@@ -10,7 +10,7 @@ from ...tl import abcs, functions, types
 from ..parsers import generate_html_message, generate_markdown_message
 from .message import Message, generate_random_id
 from .meta import NoPublicConstructor
-from .peer import Peer, expand_peer, peer_id
+from .peer import Peer, PeerMap, expand_peer, peer_id
 
 if TYPE_CHECKING:
     from ..client.client import Client
@@ -29,7 +29,7 @@ class Draft(metaclass=NoPublicConstructor):
         peer: abcs.Peer,
         top_msg_id: Optional[int],
         raw: abcs.DraftMessage,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> None:
         assert isinstance(raw, (types.DraftMessage, types.DraftMessageEmpty))
         self._client = client
@@ -40,7 +40,10 @@ class Draft(metaclass=NoPublicConstructor):
 
     @classmethod
     def _from_raw_update(
-        cls, client: Client, draft: types.UpdateDraftMessage, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        draft: types.UpdateDraftMessage,
+        chat_map: PeerMap,
     ) -> Self:
         return cls._create(client, draft.peer, draft.top_msg_id, draft.draft, chat_map)
 
@@ -51,7 +54,7 @@ class Draft(metaclass=NoPublicConstructor):
         peer: abcs.Peer,
         top_msg_id: int,
         draft: abcs.DraftMessage,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> Self:
         return cls._create(client, peer, top_msg_id, draft, chat_map)
 
@@ -214,7 +217,7 @@ class Draft(metaclass=NoPublicConstructor):
                 out=result.out,
                 id=result.id,
                 from_id=(
-                    types.PeerUser(user_id=self._client.me.id)
+                    types.PeerUser(user_id=self._client.me.id.bare_id)
                     if self._client.me
                     else None
                 ),

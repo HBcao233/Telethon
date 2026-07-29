@@ -21,4 +21,5 @@ build/
 **/testbed.py
 *.session*
 target/
+**/*.so
 .coverage

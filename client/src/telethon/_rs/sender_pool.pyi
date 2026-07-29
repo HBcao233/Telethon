@@ -2,6 +2,7 @@ from collections.abc import Buffer
 from typing import final, Self
 
 from .session import Session
+from .session.updates import MessageBoxes, UpdatesLike
 
 @final
 class SenderPool:
@@ -35,7 +36,19 @@ class SenderPool:
     def system_lang_code(self) -> str: ...
     @property
     def lang_code(self) -> str: ...
+    @property
+    def _message_box(self) -> MessageBoxes: ...
     async def is_connected(self) -> None: ...
     async def invoke_in_dc(self, dc_id: int, body: Buffer) -> bytes: ...
     async def invoke(self, body: Buffer) -> bytes: ...
     async def disconnect(self) -> None: ...
+    async def pop_updates(self) -> list[UpdatesLike]:
+        """
+        Pops updates from the queue, waiting for updates to arrive.
+        """
+    async def sync_update_state(self) -> None:
+        """
+        Synchronize the updates state to the session.
+
+        This is **not** automatically done on disconnect.
+        """

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import itertools
-import sys
-from collections import defaultdict
-from typing import TYPE_CHECKING, Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Iterable, TypeAlias
 
-from ....tl import abcs, types
+from telethon._impl.session import PeerId
+from telethon._impl.tl import abcs, types
 from .channel import Channel
 from .group import Group
 from .peer import Peer
@@ -14,10 +14,14 @@ from .user import User
 if TYPE_CHECKING:
     from ...client.client import Client
 
+PeerMap: TypeAlias = dict[PeerId, Peer]
+
 
 def build_chat_map(
-    client: Client, users: Sequence[abcs.User], chats: Sequence[abcs.Chat]
-) -> dict[int, Peer]:
+    client: Client,
+    users: Iterable[abcs.User],
+    chats: Iterable[abcs.Chat],
+) -> dict[PeerId, Peer]:
     users_iter = (User._from_raw(u) for u in users)
     chats_iter = (
         (
@@ -28,37 +32,32 @@ def build_chat_map(
         for c in chats
     )
 
-    result: dict[int, Peer] = {c.id: c for c in itertools.chain(users_iter, chats_iter)}
+    result: dict[PeerId, Peer] = {
+        c.id: c for c in itertools.chain(users_iter, chats_iter)
+    }
 
-    if len(result) != len(users) + len(chats):
-        # The fabled ID collision between different chat types.
-        counter: defaultdict[int, list[abcs.User | abcs.Chat]] = defaultdict(list)
-        for user in users:
-            if (id := getattr(user, "id", None)) is not None:
-                counter[id].append(user)
-        for chat in chats:
-            if (id := getattr(chat, "id", None)) is not None:
-                counter[id].append(chat)
+    async def _safe_cache_peer(peer: Peer) -> None:
+        try:
+            await client._session.cache_peer(peer._info)
+        except Exception:
+            client._config.base_logger.warning(
+                f"Failed to cache peer {peer.id}",
+                exc_info=True
+            )
 
-        for k, v in counter.items():
-            if len(v) > 1:
-                for x in v:
-                    print(x, file=sys.stderr)
-
-                raise RuntimeError(
-                    f"chat identifier collision: {k}; please report this"
-                )
+    for peer in result.values():
+        asyncio.create_task(_safe_cache_peer(peer))
 
     return result
 
 
-def peer_id(peer: abcs.Peer) -> int:
+def peer_id(peer: abcs.Peer) -> PeerId:
     if isinstance(peer, types.PeerUser):
-        return peer.user_id
+        return PeerId.user(peer.user_id)
     elif isinstance(peer, types.PeerChat):
-        return peer.chat_id
+        return PeerId.chat(peer.chat_id)
     elif isinstance(peer, types.PeerChannel):
-        return peer.channel_id
+        return PeerId.channel(peer.channel_id)
     else:
         raise RuntimeError("unexpected case")
 

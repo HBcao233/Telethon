@@ -13,6 +13,7 @@ from ..types import (
     KeyboardType,
     Message,
     Peer,
+    PeerMap,
     build_chat_map,
     generate_random_id,
     parse_message,
@@ -93,11 +94,7 @@ async def send_message(
             {},
             out=result.out,
             id=result.id,
-            from_id=(
-                types.PeerUser(user_id=self.me.id)
-                if self._session.user
-                else None
-            ),
+            from_id=(types.PeerUser(user_id=self.me.id.bare_id) if self.me else None),
             peer_id=chat._ref._to_peer(),
             reply_to=(
                 types.MessageReplyHeader(
@@ -208,8 +205,10 @@ class MessageList(AsyncList[Message]):
         self._reversed = False
 
     def _extend_buffer(
-        self, client: Client, messages: abcs.messages.Messages
-    ) -> dict[int, Peer]:
+        self,
+        client: Client,
+        messages: abcs.messages.Messages,
+    ) -> PeerMap:
         if isinstance(messages, types.messages.MessagesNotModified):
             self._total = messages.count
             return {}

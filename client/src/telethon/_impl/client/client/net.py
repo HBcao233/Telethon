@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import signal
 import logging
 import platform
 import re
@@ -13,6 +12,7 @@ from telethon._impl.mtsender import SenderPool, RpcError
 from telethon.version import __version__
 from telethon._impl.tl import Request, functions, types
 from ..errors import adapt_rpc
+from .updates import dispatcher, process_socket_updates
 
 if TYPE_CHECKING:
     from .client import Client
@@ -69,14 +69,29 @@ async def connect(self: Client) -> None:
         app_version=self._config.app_version,
         system_lang_code=self._config.system_lang_code,
         lang_code=self._config.lang_code,
+        catch_up=self._config.catch_up,
     )
+    self._dispatcher = asyncio.create_task(dispatcher(self))
 
 
 async def disconnect(self: Client) -> None:
     assert self._sender is not None
+    assert self._dispatcher
 
     sender = self._sender
     self._sender = None
+
+    self._dispatcher.cancel()
+    try:
+        await self._dispatcher
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        self._config.base_logger.exception(
+            "unhandled exception when cancelling dispatcher; this is a bug"
+        )
+    finally:
+        self._dispatcher = None
 
     try:
         await sender.disconnect()
@@ -116,15 +131,35 @@ async def invoke(
     return await invoke_in_dc(client, client._session.home_dc_id(), request)
 
 
+async def step_sender(client: Client) -> None:
+    assert client._sender is not None
+
+    try:
+        updates = await client._sender.pop_updates()
+    except ConnectionError:
+        if client.connected:
+            raise
+        else:
+            # disconnect was called, so the socket returning 0 bytes is expected
+            return
+
+    process_socket_updates(client, updates)
+
+
 async def run_until_disconnected(self: Client) -> None:
-    _stop_event = asyncio.Event()
-    loop = asyncio.get_running_loop()
-    loop.add_signal_handler(signal.SIGINT, _stop_event.set)
-    await _stop_event.wait()
+    while self.connected:
+        if self._sender:
+            await step_sender(self)
 
 
-def connected(client: Client) -> bool:
-    return client._sender is not None
+async def sync_update_state(self: Client) -> None:
+    assert self._sender is not None
+
+    await self._sender.sync_update_state()
+
+
+def connected(self: Client) -> bool:
+    return self._sender is not None
 
 
 async def copy_auth_to_dc(self: Client, target_dc_id: int) -> bool:

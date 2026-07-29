@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from telethon._impl.crypto import two_factor_auth
 from telethon._impl.mtsender import RpcError
-from telethon._impl.session import PeerInfo
+from telethon._impl.session import PeerInfo, UpdateState
 from telethon._impl.tl import abcs, functions, types
 from ..types import LoginToken, PasswordToken, User
 
@@ -38,6 +38,22 @@ async def complete_login(self: Client, auth: abcs.auth.Authorization) -> User:
             is_self=True,
         )
     )
+
+    try:
+        state = await self(functions.updates.get_state())
+    except RpcError:
+        pass
+    else:
+        assert isinstance(state, types.updates.State)
+        await self._session.set_update_state(
+            UpdateState.All(
+                pts=state.pts,
+                qts=state.qts,
+                date=state.date,
+                seq=state.seq,
+                channels=[],
+            )
+        )
 
     return user
 

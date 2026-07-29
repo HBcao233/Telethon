@@ -11,7 +11,6 @@ from telethon._impl.session.types import (
 
 class Session(ABC):
     def __new__(cls, *args: Any, **kwargs: Any) -> Self: ...
-
     @abstractmethod
     def home_dc_id(self) -> int:
         raise NotImplementedError("Session subclasses must implement home_dc_id()")

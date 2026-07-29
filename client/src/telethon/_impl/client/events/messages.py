@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Optional, Sequence
 
 from typing_extensions import Self
 
-from ...tl import abcs, types
-from ..types import Message, Peer, expand_peer, peer_id
+from telethon._impl.tl import abcs, types
+from ..types import Message, Peer, PeerMap, expand_peer, peer_id
 from .event import Event
 
 if TYPE_CHECKING:
@@ -27,7 +27,10 @@ class NewMessage(Event, Message):
 
     @classmethod
     def _try_from_update(
-        cls, client: Client, update: abcs.Update, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        update: abcs.Update,
+        chat_map: PeerMap,
     ) -> Optional[Self]:
         if isinstance(update, (types.UpdateNewMessage, types.UpdateNewChannelMessage)):
             if isinstance(update.message, types.Message):
@@ -49,7 +52,10 @@ class MessageEdited(Event, Message):
 
     @classmethod
     def _try_from_update(
-        cls, client: Client, update: abcs.Update, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        update: abcs.Update,
+        chat_map: PeerMap,
     ) -> Optional[Self]:
         if isinstance(
             update, (types.UpdateEditMessage, types.UpdateEditChannelMessage)
@@ -77,7 +83,10 @@ class MessageDeleted(Event):
 
     @classmethod
     def _try_from_update(
-        cls, client: Client, update: abcs.Update, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        update: abcs.Update,
+        chat_map: PeerMap,
     ) -> Optional[Self]:
         if isinstance(update, types.UpdateDeleteMessages):
             return cls._create(update.messages, None)
@@ -117,7 +126,7 @@ class MessageRead(Event):
             | types.UpdateReadChannelInbox
             | types.UpdateReadChannelOutbox
         ),
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> None:
         self._client = client
         self._raw = update
@@ -125,7 +134,10 @@ class MessageRead(Event):
 
     @classmethod
     def _try_from_update(
-        cls, client: Client, update: abcs.Update, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        update: abcs.Update,
+        chat_map: PeerMap,
     ) -> Optional[Self]:
         if isinstance(
             update,

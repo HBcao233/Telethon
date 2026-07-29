@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Sequence
 
 from typing_extensions import Self
 
-from telethon._impl.session import PeerRef
+from telethon._impl.session import ChannelKind, PeerAuth, PeerId, PeerRef, PeerInfo
 from ....tl import abcs, types
 from ..chat_restriction import ChatRestriction
 from ..meta import NoPublicConstructor
@@ -51,8 +51,11 @@ class Group(Peer, metaclass=NoPublicConstructor):
     # region Overrides
 
     @property
-    def id(self) -> int:
-        return self._raw.id
+    def id(self) -> PeerId:
+        if self.is_megagroup:
+            return PeerId.channel(self._raw.id)
+        else:
+            return PeerId.chat(self._raw.id)
 
     @property
     def name(self) -> str:
@@ -68,13 +71,30 @@ class Group(Peer, metaclass=NoPublicConstructor):
         return getattr(self._raw, "username", None)
 
     @property
+    def access_hash(self) -> PeerAuth:
+        return PeerAuth(getattr(self._raw, "access_hash", None) or 0)
+
+    @property
     def ref(self) -> PeerRef:
         # if isinstance(self._raw, (types.ChatEmpty, types.Chat, types.ChatForbidden)):
-        return PeerRef(self._raw.id, self._raw.access_hash)
+        return PeerRef(self.id, self.access_hash)
 
     @property
     def _ref(self) -> PeerRef:
         return self.ref
+
+    @property
+    def _info(self) -> PeerInfo.Chat | PeerInfo.Channel:
+        try:
+            channel_kind = self.kind
+        except TypeError:
+            return PeerInfo.Chat(id=self.id.bare_id)
+        else:
+            return PeerInfo.Channel(
+                id=self.id.bare_id,
+                auth=self.access_hash,
+                kind=channel_kind,
+            )
 
     # endregion Overrides
 
@@ -86,6 +106,15 @@ class Group(Peer, metaclass=NoPublicConstructor):
         These are known as "megagroups" in Telegram's API, and are different from "gigagroups".
         """
         return isinstance(self._raw, (types.Channel, types.ChannelForbidden))
+
+    @property
+    def kind(self) -> ChannelKind:
+        if getattr(self._raw, "gigagroup", None):
+            return ChannelKind.Gigagroup
+        elif getattr(self._raw, "megagroup", None):
+            return ChannelKind.Broadcast
+        else:
+            raise TypeError("This group not a channel.")
 
     async def set_default_restrictions(
         self,

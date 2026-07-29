@@ -1,6 +1,6 @@
-from ...tl import abcs, types
+from telethon._impl.tl import abcs, types
 from .meta import NoPublicConstructor
-from .peer import Peer
+from .peer import PeerMap
 
 
 class RecentAction(metaclass=NoPublicConstructor):
@@ -15,7 +15,7 @@ class RecentAction(metaclass=NoPublicConstructor):
     def __init__(
         self,
         event: abcs.ChannelAdminLogEvent,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> None:
         assert isinstance(event, types.ChannelAdminLogEvent)
         self._raw = event

@@ -12,7 +12,17 @@ from .types import (
     UpdateState,
 )
 from .session import Session
-from .sqlite import SqliteSession
+from .storage.sqlite import SqliteSession
+from .updates import (
+    GapError,
+    Instant,
+    MessageBox,
+    MessageBoxes,
+    PrematureEndReason,
+    State,
+    UpdateAndPeers,
+    UpdatesLike,
+)
 
 __all__ = [
     "PeerId",
@@ -29,4 +39,12 @@ __all__ = [
     # "MemorySession",
     "SqliteSession",
     "Session",
+    "GapError",
+    "Instant",
+    "MessageBox",
+    "MessageBoxes",
+    "PrematureEndReason",
+    "State",
+    "UpdateAndPeers",
+    "UpdatesLike",
 ]

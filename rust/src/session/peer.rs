@@ -56,8 +56,8 @@ impl PyPeerId {
     ///
     /// Internally, this will use a special sentinel value outside of any valid Bot API Dialog ID range.
     #[staticmethod]
-    pub fn self_user() -> PyResult<Self> {
-        Ok(Self(SELF_USER_ID))
+    pub fn self_user() -> Self {
+        Self(SELF_USER_ID)
     }
 
     /// Creates a peer identity for a user or bot account.
@@ -163,7 +163,10 @@ impl PyPeerId {
 
 impl From<PeerId> for PyPeerId {
     fn from(x: PeerId) -> Self {
-        Self(x.bot_api_dialog_id_unchecked())
+        match x.bot_api_dialog_id() {
+            Some(x) => Self(x),
+            None => Self::self_user(),
+        }
     }
 }
 
@@ -431,7 +434,6 @@ impl PyPeerInfoUser {
         bot: Option<bool>,
         is_self: Option<bool>,
     ) -> PyResult<PyClassInitializer<Self>> {
-        let _ = PyPeerId::user(id)?;
         let base = PyClassInitializer::from(PyPeerInfo {});
         let x = Self {
             id,
@@ -497,7 +499,6 @@ pub struct PyPeerInfoChat {
 impl PyPeerInfoChat {
     #[new]
     fn new(id: i64) -> PyResult<PyClassInitializer<Self>> {
-        let _ = PyPeerId::chat(id)?;
         let base = PyClassInitializer::from(PyPeerInfo {});
         Ok(base.add_subclass(Self { id }))
     }
@@ -557,7 +558,6 @@ impl PyPeerInfoChannel {
         auth: Option<PeerAuthLike>,
         kind: Option<PyChannelKind>,
     ) -> PyResult<PyClassInitializer<Self>> {
-        let _ = PyPeerId::channel(id)?;
         let base = PyClassInitializer::from(PyPeerInfo {});
         let x = Self {
             id,

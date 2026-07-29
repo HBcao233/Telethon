@@ -8,7 +8,7 @@ from ...tl import abcs, types
 from .draft import Draft
 from .message import Message
 from .meta import NoPublicConstructor
-from .peer import Peer, peer_id
+from .peer import Peer, PeerMap, peer_id
 
 if TYPE_CHECKING:
     from ..client.client import Client
@@ -29,7 +29,7 @@ class Dialog(metaclass=NoPublicConstructor):
         self,
         client: Client,
         raw: types.Dialog | types.DialogFolder,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
         msg_map: dict[int, Message],
     ) -> None:
         self._client = client
@@ -42,7 +42,7 @@ class Dialog(metaclass=NoPublicConstructor):
         cls,
         client: Client,
         dialog: abcs.Dialog,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
         msg_map: dict[int, Message],
     ) -> Self:
         assert isinstance(dialog, (types.Dialog, types.DialogFolder))

@@ -18,7 +18,7 @@ from .buttons import Button, create_button
 from .file import File
 from .keyboard import KeyboardType
 from .meta import NoPublicConstructor
-from .peer import Peer, expand_peer, peer_id
+from .peer import Peer, PeerMap, expand_peer, peer_id
 
 if TYPE_CHECKING:
     from ..client.client import Client
@@ -62,7 +62,10 @@ class Message(metaclass=NoPublicConstructor):
     """
 
     def __init__(
-        self, client: Client, message: abcs.Message, chat_map: dict[int, Peer]
+        self,
+        client: Client,
+        message: abcs.Message,
+        chat_map: PeerMap,
     ) -> None:
         assert isinstance(
             message, (types.Message, types.MessageService, types.MessageEmpty)
@@ -73,7 +76,10 @@ class Message(metaclass=NoPublicConstructor):
 
     @classmethod
     def _from_raw(
-        cls, client: Client, message: abcs.Message, chat_map: dict[int, Peer]
+        cls,
+        client: Client,
+        message: abcs.Message,
+        chat_map: PeerMap,
     ) -> Self:
         return cls._create(client, message, chat_map)
 
@@ -81,7 +87,7 @@ class Message(metaclass=NoPublicConstructor):
     def _from_defaults(
         cls,
         client: Client,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
         id: int,
         peer_id: abcs.Peer,
         date: int,
@@ -509,7 +515,9 @@ class Message(metaclass=NoPublicConstructor):
 
 
 def build_msg_map(
-    client: Client, messages: Sequence[abcs.Message], chat_map: dict[int, Peer]
+    client: Client,
+    messages: Sequence[abcs.Message],
+    chat_map: PeerMap,
 ) -> dict[int, Message]:
     return {
         msg.id: msg

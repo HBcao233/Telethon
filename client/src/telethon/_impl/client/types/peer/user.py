@@ -2,7 +2,7 @@ from typing import Optional
 
 from typing_extensions import Self
 
-from telethon._impl.session import PeerRef
+from telethon._impl.session import PeerAuth, PeerId, PeerRef, PeerInfo
 from telethon._impl.tl import abcs, types
 from ..meta import NoPublicConstructor
 from .peer import Peer
@@ -84,8 +84,8 @@ class User(Peer, metaclass=NoPublicConstructor):
     # region Overrides
 
     @property
-    def id(self) -> int:
-        return self._raw.id
+    def id(self) -> PeerId:
+        return PeerId.user(self._raw.id)
 
     @property
     def is_self(self) -> bool:
@@ -107,12 +107,25 @@ class User(Peer, metaclass=NoPublicConstructor):
         return self._raw.username
 
     @property
+    def access_hash(self) -> PeerAuth:
+        return PeerAuth(getattr(self._raw, "access_hash", None) or 0)
+
+    @property
     def ref(self) -> PeerRef:
-        return PeerRef(self._raw.id, self._raw.access_hash)
+        return PeerRef(self.id, self.access_hash)
 
     @property
     def _ref(self) -> PeerRef:
         return self.ref
+
+    @property
+    def _info(self) -> PeerInfo.User:
+        return PeerInfo.User(
+            id=self.id.bare_id,
+            auth=self.access_hash,
+            bot=self.bot,
+            is_self=self.is_self,
+        )
 
     # endregion Overrides
 

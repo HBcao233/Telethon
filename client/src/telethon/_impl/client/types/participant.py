@@ -5,12 +5,12 @@ from typing import TYPE_CHECKING, Optional, Sequence
 
 from typing_extensions import Self
 
-from ...session import PeerRef
-from ...tl import abcs, types
+from telethon._impl.session import PeerId, PeerRef
+from telethon._impl.tl import abcs, types
 from .admin_right import AdminRight
 from .chat_restriction import ChatRestriction
 from .meta import NoPublicConstructor
-from .peer import Peer, User, peer_id
+from .peer import Peer, PeerMap, User, peer_id
 
 if TYPE_CHECKING:
     from ..client.client import Client
@@ -38,7 +38,7 @@ class Participant(metaclass=NoPublicConstructor):
             | types.ChatParticipantCreator
             | types.ChatParticipantAdmin
         ),
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> None:
         self._client = client
         self._chat = chat
@@ -51,7 +51,7 @@ class Participant(metaclass=NoPublicConstructor):
         client: Client,
         chat: PeerRef,
         participant: abcs.ChannelParticipant,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> Self:
         if isinstance(
             participant,
@@ -74,7 +74,7 @@ class Participant(metaclass=NoPublicConstructor):
         client: Client,
         chat: PeerRef,
         participant: abcs.ChatParticipant,
-        chat_map: dict[int, Peer],
+        chat_map: PeerMap,
     ) -> Self:
         if isinstance(
             participant,
@@ -88,7 +88,7 @@ class Participant(metaclass=NoPublicConstructor):
         else:
             raise RuntimeError("unexpected case")
 
-    def _peer_id(self) -> int:
+    def _peer_id(self) -> PeerId:
         if isinstance(
             self._raw,
             (
@@ -101,7 +101,7 @@ class Participant(metaclass=NoPublicConstructor):
                 types.ChatParticipantAdmin,
             ),
         ):
-            return self._raw.user_id
+            return PeerId.user(self._raw.user_id)
         else:
             return peer_id(self._raw.peer)
 
@@ -124,7 +124,7 @@ class Participant(metaclass=NoPublicConstructor):
                 types.ChatParticipantAdmin,
             ),
         ):
-            user = self._chat_map[self._raw.user_id]
+            user = self._chat_map[PeerId.user(self._raw.user_id)]
             assert isinstance(user, User)
             return user
         else:

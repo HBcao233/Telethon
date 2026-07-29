@@ -2,7 +2,7 @@ from typing import Optional
 
 from typing_extensions import Self
 
-from telethon._impl.session import PeerRef
+from telethon._impl.session import ChannelKind, PeerAuth, PeerId, PeerRef, PeerInfo
 from telethon._impl.tl import abcs, types
 from ..meta import NoPublicConstructor
 from .peer import Peer
@@ -36,8 +36,8 @@ class Channel(Peer, metaclass=NoPublicConstructor):
     # region Overrides
 
     @property
-    def id(self) -> int:
-        return self._raw.id
+    def id(self) -> PeerId:
+        return PeerId.channel(self._raw.id)
 
     @property
     def name(self) -> str:
@@ -53,11 +53,27 @@ class Channel(Peer, metaclass=NoPublicConstructor):
         return getattr(self._raw, "username", None)
 
     @property
+    def access_hash(self) -> PeerAuth:
+        return PeerAuth(getattr(self._raw, "access_hash", None) or 0)
+
+    @property
     def ref(self) -> PeerRef:
-        return PeerRef(self._raw.id, self._raw.access_hash)
+        return PeerRef(self.id, self.access_hash)
 
     @property
     def _ref(self) -> PeerRef:
         return self.ref
 
+    @property
+    def _info(self) -> PeerInfo.Channel:
+        return PeerInfo.Channel(
+            id=self.id.bare_id,
+            auth=self.access_hash,
+            kind=self.kind,
+        )
+
     # endregion Overrides
+
+    @property
+    def kind(self) -> ChannelKind:
+        return ChannelKind.Broadcast

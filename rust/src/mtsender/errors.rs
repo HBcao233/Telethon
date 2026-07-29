@@ -6,9 +6,9 @@ use pyo3::types::{PyDict, PyTuple};
 use grammers_mtsender::{InvocationError, RpcError};
 use grammers_tl_types as tl;
 
-create_exception!(telethon_mtsender, DroppedError, PyException);
-create_exception!(telethon_mtsender, DeserializeError, PyException);
-create_exception!(telethon_mtsender, TransportError, PyException);
+create_exception!("telethon._impl.mtsender", DroppedError, PyException);
+create_exception!("telethon._impl.mtsender", DeserializeError, PyException);
+create_exception!("telethon._impl.mtsender", TransportError, PyException);
 
 #[pyclass(name = "RpcError", module = "telethon_mtsender", extends = PyException, subclass, dict)]
 pub struct PyRpcError {

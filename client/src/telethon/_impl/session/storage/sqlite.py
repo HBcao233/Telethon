@@ -9,8 +9,8 @@ import ipaddress
 import struct
 from typing import Any, Self, Tuple, AsyncGenerator
 
-from .session import Session
-from .types import (
+from ..session import Session
+from ..types import (
     DcOption,
     PeerId,
     PeerIdLike,
@@ -22,7 +22,7 @@ from .types import (
     ChannelState,
     UpdateState,
 )
-from .dc_options import DEFAULT_DC, KNOWN_DC_OPTIONS
+from ..dc_options import DEFAULT_DC, KNOWN_DC_OPTIONS
 
 
 __all__ = ["SqliteSession", "VERSION", "PeerSubtype"]

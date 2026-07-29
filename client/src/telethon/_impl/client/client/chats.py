@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, Optional, Sequence
 
-from telethon._impl.session import PeerRef, PeerKind
+from telethon._impl.session import PeerId, PeerRef, PeerKind
 from telethon._impl.tl import functions, types
 from ..types import (
     AdminRight,
@@ -34,7 +34,7 @@ class ParticipantList(AsyncList[Participant]):
         self._client = client
         self._peer = peer
         self._offset = 0
-        self._seen: set[int] = set()
+        self._seen: set[PeerId] = set()
 
     async def _fetch_next(self) -> None:
         if self._peer.id.kind == PeerKind.Channel:

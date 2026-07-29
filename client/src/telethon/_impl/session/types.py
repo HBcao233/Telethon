@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 
-class PeerRef(_rs.session.PeerRef):
+class PeerRef(_rs.PeerRef):
     @property
     def _ref(self) -> "PeerRef":
         return self

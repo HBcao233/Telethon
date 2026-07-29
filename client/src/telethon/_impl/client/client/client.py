@@ -12,7 +12,9 @@ from telethon.version import __version__ as default_version
 from telethon._impl.mtsender import SenderPool
 from telethon._impl.session import (
     # MemorySession, TODO
+    PeerId,
     PeerRef,
+    State,
     Session,
     SqliteSession,
 )
@@ -95,6 +97,7 @@ from .net import (
     invoke,
     invoke_in_dc,
     run_until_disconnected,
+    sync_update_state,
     copy_auth_to_dc,
 )
 from .updates import (
@@ -248,9 +251,10 @@ class Client:
         )
 
         self._last_update_limit_warn: Optional[float] = None
-        self._updates: asyncio.Queue[tuple[abcs.Update, dict[int, Peer]]] = (
+        self._updates: asyncio.Queue[tuple[abcs.Update, State, dict[PeerId, Peer]]] = (
             asyncio.Queue(maxsize=self._config.update_queue_limit or 0)
         )
+        self._dispatcher: Optional[asyncio.Task[None]] = None
         self._handlers: dict[
             Type[Event],
             list[tuple[Callable[[Any], Awaitable[Any]], Optional[FilterType]]],
@@ -1278,7 +1282,15 @@ class Client:
         """
         await run_until_disconnected(self)
 
-    async def copy_auth_to_dc(self, target_dc_id: int):
+    async def sync_update_state(self) -> None:
+        """
+        Synchronize the updates state to the session.
+
+        This is **not** automatically done on disconnect.
+        """
+        await sync_update_state(self)
+
+    async def copy_auth_to_dc(self, target_dc_id: int) -> None:
         await copy_auth_to_dc(self, target_dc_id)
 
     def search_all_messages(

@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Any, Optional, Sequence, Type
+from typing import TYPE_CHECKING, Any, Optional, Sequence, Type, Iterable
 
-from ...tl import abcs
+from telethon._impl.session import GapError, State, UpdatesLike
+from telethon._impl.tl import abcs
+from telethon._impl.tl.core import Reader
 from ..events import Continue, Event
 from ..events.filters import FilterType
 from ..types import build_chat_map
@@ -72,39 +74,45 @@ def set_handler_filter(
                 handlers[i] = (h, filter)
 
 
-def process_socket_updates(client: Client, all_updates: list[abcs.Updates]) -> None:
-    if not all_updates:
-        return
-
+def process_socket_updates(
+    client: Client,
+    all_updates: Sequence[UpdatesLike],
+) -> None:
     for updates in all_updates:
-        # try:
-        #     client._message_box.ensure_known_peer_hashes(updates, client._chat_hashes)
-        # except GapError:
-        #     return
+        try:
+            x = client._sender._message_box.process_updates(updates)
 
-        # try:
-        #     result, users, chats = client._message_box.process_updates(
-        #         updates, client._chat_hashes
-        #     )
-        # except GapError:
-        #     return
+            def serialize_update(u: tuple[bytes, State]) -> tuple[abcs.Update, State]:
+                update, state = u
+                result = Reader(update).read_serializable(abcs.Update)  # type: ignore[type-abstract]
+                return (result, state)
 
-        # extend_update_queue(client, result, users, chats)
-        # TODO
-        pass
+            def serialize_user(user: bytes) -> abcs.User:
+                return Reader(user).read_serializable(abcs.User)  # type: ignore[type-abstract]
+
+            def serialize_chat(chat: bytes) -> abcs.Chat:
+                return Reader(chat).read_serializable(abcs.Chat)  # type: ignore[type-abstract]
+
+            result = map(serialize_update, x.updates)
+            users = map(serialize_user, x.users)
+            chats = map(serialize_chat, x.chats)
+        except GapError:
+            return
+
+        extend_update_queue(client, result, users, chats)
 
 
 def extend_update_queue(
     client: Client,
-    updates: list[abcs.Update],
-    users: Sequence[abcs.User],
-    chats: Sequence[abcs.Chat],
+    updates: Iterable[tuple[abcs.Update, State]],
+    users: Iterable[abcs.User],
+    chats: Iterable[abcs.Chat],
 ) -> None:
     chat_map = build_chat_map(client, users, chats)
 
-    for update in updates:
+    for update, state in updates:
         try:
-            client._updates.put_nowait((update, chat_map))
+            client._updates.put_nowait((update, state, chat_map))
         except asyncio.QueueFull:
             now = asyncio.get_running_loop().time()
             if client._last_update_limit_warn is None or (
@@ -141,7 +149,8 @@ async def dispatcher(client: Client) -> None:
 
 
 async def dispatch_next(client: Client) -> None:
-    update, chat_map = await client._updates.get()
+    # TODO: state
+    update, state, chat_map = await client._updates.get()
     for event_cls, handlers in client._handlers.items():
         if event := event_cls._try_from_update(client, update, chat_map):
             for handler, filter in handlers:

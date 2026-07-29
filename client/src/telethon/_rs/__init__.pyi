@@ -11,6 +11,14 @@ from .session import (
     UpdatesState,
     UpdateState,
     Session,
+    GapError,
+    Instant,
+    MessageBox,
+    MessageBoxes,
+    PrematureEndReason,
+    State,
+    UpdateAndPeers,
+    UpdatesLike,
 )
 from .errors import RpcError, DroppedError, DeserializeError, TransportError
 from .sender import Sender
@@ -36,4 +44,12 @@ __all__ = [
     "TransportError",
     "Sender",
     "SenderPool",
+    "GapError",
+    "Instant",
+    "MessageBox",
+    "MessageBoxes",
+    "PrematureEndReason",
+    "State",
+    "UpdateAndPeers",
+    "UpdatesLike",
 ]

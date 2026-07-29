@@ -32,16 +32,18 @@ path = "rust/src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-grammers-tl-types = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
-grammers-mtproto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
-grammers-mtsender = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
-grammers-session = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b", default-features = false }
-grammers-crypto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "1d46353a97e0710bb6aa66aca09247328b48706b" }
+grammers-tl-types = { git = "https://codeberg.org/Lonami/grammers.git", rev = "5c6d44ff30" } # v0.10.0
+grammers-mtproto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "5c6d44ff30" }
+grammers-mtsender = { git = "https://codeberg.org/Lonami/grammers.git", rev = "5c6d44ff30" }
+grammers-session = { git = "https://codeberg.org/Lonami/grammers.git", rev = "5c6d44ff30", default-features = false }
+grammers-crypto = { git = "https://codeberg.org/Lonami/grammers.git", rev = "5c6d44ff30" }
 
 tokio = { version = "1.49.0", default-features = false, features = ["io-util", "sync", "time", "net", "macros", "rt", "rt-multi-thread", "signal", "fs"] }
+log = "0.4.33"
 
 pyo3 = { version = "0.28", features = ["experimental-async"] }
 pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
+pyo3-log = "0.13.4"
 
 [build-dependencies]
 pyo3-build-config = "0.28"
