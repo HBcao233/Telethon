@@ -76,30 +76,24 @@ def set_handler_filter(
 
 def process_socket_updates(
     client: Client,
-    all_updates: Sequence[UpdatesLike],
+    x: UpdateAndPeers,
 ) -> None:
-    for updates in all_updates:
-        try:
-            x = client._sender._message_box.process_updates(updates)
+    def serialize_update(u: tuple[bytes, State]) -> tuple[abcs.Update, State]:
+        update, state = u
+        result = Reader(update).read_serializable(abcs.Update)  # type: ignore[type-abstract]
+        return (result, state)
 
-            def serialize_update(u: tuple[bytes, State]) -> tuple[abcs.Update, State]:
-                update, state = u
-                result = Reader(update).read_serializable(abcs.Update)  # type: ignore[type-abstract]
-                return (result, state)
+    def serialize_user(user: bytes) -> abcs.User:
+        return Reader(user).read_serializable(abcs.User)  # type: ignore[type-abstract]
 
-            def serialize_user(user: bytes) -> abcs.User:
-                return Reader(user).read_serializable(abcs.User)  # type: ignore[type-abstract]
+    def serialize_chat(chat: bytes) -> abcs.Chat:
+        return Reader(chat).read_serializable(abcs.Chat)  # type: ignore[type-abstract]
 
-            def serialize_chat(chat: bytes) -> abcs.Chat:
-                return Reader(chat).read_serializable(abcs.Chat)  # type: ignore[type-abstract]
+    result = map(serialize_update, x.updates)
+    users = map(serialize_user, x.users)
+    chats = map(serialize_chat, x.chats)
 
-            result = map(serialize_update, x.updates)
-            users = map(serialize_user, x.users)
-            chats = map(serialize_chat, x.chats)
-        except GapError:
-            return
-
-        extend_update_queue(client, result, users, chats)
+    extend_update_queue(client, result, users, chats)
 
 
 def extend_update_queue(

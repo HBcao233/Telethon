@@ -2,7 +2,7 @@ from collections.abc import Buffer
 from typing import final, Self
 
 from .session import Session
-from .session.updates import MessageBoxes, UpdatesLike
+from .session.updates import MessageBoxes, UpdateAndPeers
 
 @final
 class SenderPool:
@@ -42,7 +42,7 @@ class SenderPool:
     async def invoke_in_dc(self, dc_id: int, body: Buffer) -> bytes: ...
     async def invoke(self, body: Buffer) -> bytes: ...
     async def disconnect(self) -> None: ...
-    async def pop_updates(self) -> list[UpdatesLike]:
+    async def pop_updates(self) -> UpdateAndPeers:
         """
         Pops updates from the queue, waiting for updates to arrive.
         """
