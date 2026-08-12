@@ -2,7 +2,6 @@ import os
 import random
 
 from pytest import mark
-
 from telethon import Client
 from telethon import _tl as tl
 

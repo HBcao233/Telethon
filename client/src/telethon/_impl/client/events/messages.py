@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Sequence
-
-from typing_extensions import Self
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Self
 
 from telethon._impl.tl import abcs, types
+
 from ..types import Message, Peer, PeerMap, expand_peer, peer_id
 from .event import Event
 
@@ -31,14 +31,14 @@ class NewMessage(Event, Message):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(update, (types.UpdateNewMessage, types.UpdateNewChannelMessage)):
             if isinstance(update.message, types.Message):
                 return cls._from_raw(client, update.message, chat_map)
         elif isinstance(
             update, (types.UpdateShortMessage, types.UpdateShortChatMessage)
         ):
-            raise RuntimeError("should have been handled by adaptor")
+            raise TypeError("should have been handled by adaptor")
 
         return None
 
@@ -56,7 +56,7 @@ class MessageEdited(Event, Message):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(
             update, (types.UpdateEditMessage, types.UpdateEditChannelMessage)
         ):
@@ -77,7 +77,7 @@ class MessageDeleted(Event):
         The chat is only known when the deletion occurs in broadcast channels or supergroups.
     """
 
-    def __init__(self, msg_ids: Sequence[int], channel_id: Optional[int]) -> None:
+    def __init__(self, msg_ids: Sequence[int], channel_id: int | None) -> None:
         self._msg_ids = msg_ids
         self._channel_id = channel_id
 
@@ -87,7 +87,7 @@ class MessageDeleted(Event):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(update, types.UpdateDeleteMessages):
             return cls._create(update.messages, None)
         elif isinstance(update, types.UpdateDeleteChannelMessages):
@@ -103,7 +103,7 @@ class MessageDeleted(Event):
         return self._msg_ids
 
     @property
-    def channel_id(self) -> Optional[int]:
+    def channel_id(self) -> int | None:
         """
         The channel identifier of the supergroup or broadcast channel where the messages were deleted.
 
@@ -138,7 +138,7 @@ class MessageRead(Event):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(
             update,
             (

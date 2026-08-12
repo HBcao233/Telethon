@@ -1,5 +1,4 @@
 from pytest import mark
-
 from telethon._impl.tl.core import serialize_bytes_to
 
 

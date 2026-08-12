@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ....tl import types
 from .inline_button import InlineButton
 
@@ -12,7 +10,7 @@ class SwitchInline(InlineButton):
     :param query: See below.
     """
 
-    def __init__(self, text: str, query: Optional[str] = None) -> None:
+    def __init__(self, text: str, query: str | None = None) -> None:
         super().__init__(text)
         self._raw = types.KeyboardButtonSwitchInline(
             same_peer=False, text=text, query=query or "", peer_types=None

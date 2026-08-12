@@ -2,7 +2,7 @@ from collections import deque
 from collections.abc import Callable, Iterable
 from html import escape
 from html.parser import HTMLParser
-from typing import Any, Optional, Type, cast
+from typing import Any, cast
 
 from ...tl.abcs import MessageEntity
 from ...tl.types import (
@@ -29,14 +29,14 @@ class HTMLToTelegramParser(HTMLParser):
         self.entities: list[MessageEntity] = []
         self._building_entities: dict[str, MessageEntity] = {}
         self._open_tags: deque[str] = deque()
-        self._open_tags_meta: deque[Optional[str]] = deque()
+        self._open_tags_meta: deque[str | None] = deque()
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self._open_tags.appendleft(tag)
         self._open_tags_meta.appendleft(None)
 
         attributes = dict(attrs)
-        entity_type: Optional[Type[MessageEntity]] = None
+        entity_type: type[MessageEntity] | None = None
         args = {}
         if tag == "strong" or tag == "b":
             entity_type = MessageEntityBold
@@ -102,7 +102,7 @@ class HTMLToTelegramParser(HTMLParser):
 
         for entity in self._building_entities.values():
             assert hasattr(entity, "length")
-            setattr(entity, "length", getattr(entity, "length", 0) + len(data))
+            entity.length = getattr(entity, "length", 0) + len(data)
 
         self.text += data
 
@@ -134,7 +134,7 @@ def parse(html: str) -> tuple[str, list[MessageEntity]]:
 
 
 ENTITY_TO_FORMATTER: dict[
-    Type[MessageEntity], tuple[str, str] | Callable[[Any, str], tuple[str, str]]
+    type[MessageEntity], tuple[str, str] | Callable[[Any, str], tuple[str, str]]
 ] = {
     MessageEntityBold: ("<strong>", "</strong>"),
     MessageEntityItalic: ("<em>", "</em>"),
@@ -144,14 +144,14 @@ ENTITY_TO_FORMATTER: dict[
     MessageEntityBlockquote: ("<blockquote>", "</blockquote>"),
     MessageEntitySpoiler: ("<details>", "</details>"),
     MessageEntityPre: lambda e, _: (
-        '<pre><code class="language-{}">'.format(e.language) if e.language else "<pre>",
+        f'<pre><code class="language-{e.language}">' if e.language else "<pre>",
         "</code></pre>" if e.language else "</pre>",
     ),
-    MessageEntityEmail: lambda _, t: ('<a href="mailto:{}">'.format(t), "</a>"),
-    MessageEntityUrl: lambda _, t: ('<a href="{}">'.format(t), "</a>"),
-    MessageEntityTextUrl: lambda e, _: ('<a href="{}">'.format(escape(e.url)), "</a>"),
+    MessageEntityEmail: lambda _, t: (f'<a href="mailto:{t}">', "</a>"),
+    MessageEntityUrl: lambda _, t: (f'<a href="{t}">', "</a>"),
+    MessageEntityTextUrl: lambda e, _: (f'<a href="{escape(e.url)}">', "</a>"),
     MessageEntityMentionName: lambda e, _: (
-        '<a href="tg://user?id={}">'.format(e.user_id),
+        f'<a href="tg://user?id={e.user_id}">',
         "</a>",
     ),
 }

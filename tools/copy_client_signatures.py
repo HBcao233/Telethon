@@ -141,7 +141,11 @@ def main() -> None:
         )
 
     print("written @generated")
-    exit(subprocess.run((sys.executable, "-m", "black", str(client_py))).returncode)
+    sys.exit(
+        subprocess.run(
+            (sys.executable, "-m", "black", str(client_py)), check=False
+        ).returncode
+    )
 
 
 if __name__ == "__main__":

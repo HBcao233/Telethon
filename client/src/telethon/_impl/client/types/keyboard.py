@@ -1,4 +1,4 @@
-from typing import Optional, TypeAlias, TypeVar
+from typing import TypeVar
 
 from ...tl import abcs, types
 from .buttons import Button, InlineButton
@@ -6,8 +6,10 @@ from .buttons import Button, InlineButton
 AnyButton = TypeVar("AnyButton", bound=Button)
 AnyInlineButton = TypeVar("AnyInlineButton", bound=InlineButton)
 
+type KeyboardType = Keyboard | InlineKeyboard | HiddenKeyboard | ForcedReplyKeyboard
 
-def _build_keyboard_rows(
+
+def _build_keyboard_rows[AnyButton](
     btns: list[AnyButton] | list[list[AnyButton]],
 ) -> list[abcs.KeyboardButtonRow]:
     # list[button] -> list[list[button]]
@@ -35,7 +37,7 @@ class Keyboard:
         single_use: bool,
         selective: bool,
         persistent: bool,
-        placeholder: Optional[str],
+        placeholder: str | None,
     ) -> None:
         self._raw = types.ReplyKeyboardMarkup(
             resize=resize,
@@ -67,13 +69,8 @@ class ForcedReplyKeyboard:
     __slots__ = ("_raw",)
 
     def __init__(
-        self, *, single_use: bool, selective: bool, placeholder: Optional[str]
+        self, *, single_use: bool, selective: bool, placeholder: str | None
     ) -> None:
         self._raw = types.ReplyKeyboardForceReply(
             single_use=single_use, selective=selective, placeholder=placeholder
         )
-
-
-KeyboardType: TypeAlias = (
-    Keyboard | InlineKeyboard | HiddenKeyboard | ForcedReplyKeyboard
-)

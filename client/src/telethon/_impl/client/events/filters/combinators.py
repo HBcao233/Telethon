@@ -1,11 +1,10 @@
 import abc
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from inspect import isawaitable
-from typing import Awaitable, TypeAlias
 
 from ..event import Event
 
-FilterType: TypeAlias = "Callable[[Event], bool | Awaitable[bool]] | Combinable"
+type FilterType = "Callable[[Event], bool | Awaitable[bool]] | Combinable"
 
 
 class Combinable(abc.ABC):

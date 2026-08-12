@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Self
 
 from ...session import PeerRef
 from ...tl import abcs, functions, types
@@ -27,7 +25,7 @@ class Draft(metaclass=NoPublicConstructor):
         self,
         client: Client,
         peer: abcs.Peer,
-        top_msg_id: Optional[int],
+        top_msg_id: int | None,
         raw: abcs.DraftMessage,
         chat_map: PeerMap,
     ) -> None:
@@ -77,21 +75,21 @@ class Draft(metaclass=NoPublicConstructor):
         return not getattr(self._raw, "no_webpage", False)
 
     @property
-    def replied_message_id(self) -> Optional[int]:
+    def replied_message_id(self) -> int | None:
         """
         Get the message identifier of message this draft will reply to once sent.
         """
-        return getattr(self._raw, "reply_to_msg_id") or None
+        return self._raw.reply_to_msg_id or None
 
     @property
-    def text(self) -> Optional[str]:
+    def text(self) -> str | None:
         """
         The :attr:`~Message.text` of the message that will be sent.
         """
         return getattr(self._raw, "message", None)
 
     @property
-    def text_html(self) -> Optional[str]:
+    def text_html(self) -> str | None:
         """
         The :attr:`~Message.text_html` of the message that will be sent.
         """
@@ -103,7 +101,7 @@ class Draft(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def text_markdown(self) -> Optional[str]:
+    def text_markdown(self) -> str | None:
         """
         The :attr:`~Message.text_markdown` of the message that will be sent.
         """
@@ -115,25 +113,25 @@ class Draft(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def date(self) -> Optional[datetime.datetime]:
+    def date(self) -> datetime.datetime | None:
         """
         The date when the draft was last updated.
         """
         date = getattr(self._raw, "date", None)
         return (
-            datetime.datetime.fromtimestamp(date, tz=datetime.timezone.utc)
+            datetime.datetime.fromtimestamp(date, tz=datetime.UTC)
             if date is not None
             else None
         )
 
     async def edit(
         self,
-        text: Optional[str] = None,
+        text: str | None = None,
         *,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        reply_to: Optional[int] = None,
+        reply_to: int | None = None,
     ) -> Draft:
         """
         Replace the current draft with a new one.

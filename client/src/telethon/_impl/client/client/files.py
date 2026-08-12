@@ -4,7 +4,7 @@ import hashlib
 import mimetypes
 from inspect import isawaitable
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ...session import PeerRef
 from ...tl import abcs, functions, types
@@ -47,17 +47,17 @@ async def send_photo(
     /,
     file: str | Path | InFileLike | File,
     *,
-    size: Optional[int] = None,
-    name: Optional[str] = None,
-    mime_type: Optional[str] = None,
+    size: int | None = None,
+    name: str | None = None,
+    mime_type: str | None = None,
     compress: bool = True,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
-    caption: Optional[str] = None,
-    caption_markdown: Optional[str] = None,
-    caption_html: Optional[str] = None,
-    reply_to: Optional[int] = None,
-    keyboard: Optional[KeyboardType] = None,
+    width: int | None = None,
+    height: int | None = None,
+    caption: str | None = None,
+    caption_markdown: str | None = None,
+    caption_html: str | None = None,
+    reply_to: int | None = None,
+    keyboard: KeyboardType | None = None,
 ) -> Message:
     return await send_file(
         self,
@@ -87,18 +87,18 @@ async def send_audio(
     /,
     file: str | Path | InFileLike | File,
     *,
-    size: Optional[int] = None,
-    name: Optional[str] = None,
-    mime_type: Optional[str] = None,
-    duration: Optional[float] = None,
+    size: int | None = None,
+    name: str | None = None,
+    mime_type: str | None = None,
+    duration: float | None = None,
     voice: bool = False,
-    title: Optional[str] = None,
-    performer: Optional[str] = None,
-    caption: Optional[str] = None,
-    caption_markdown: Optional[str] = None,
-    caption_html: Optional[str] = None,
-    reply_to: Optional[int] = None,
-    keyboard: Optional[KeyboardType] = None,
+    title: str | None = None,
+    performer: str | None = None,
+    caption: str | None = None,
+    caption_markdown: str | None = None,
+    caption_html: str | None = None,
+    reply_to: int | None = None,
+    keyboard: KeyboardType | None = None,
 ) -> Message:
     return await send_file(
         self,
@@ -125,20 +125,20 @@ async def send_video(
     /,
     file: str | Path | InFileLike | File,
     *,
-    size: Optional[int] = None,
-    name: Optional[str] = None,
-    mime_type: Optional[str] = None,
-    duration: Optional[float] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    size: int | None = None,
+    name: str | None = None,
+    mime_type: str | None = None,
+    duration: float | None = None,
+    width: int | None = None,
+    height: int | None = None,
     round: bool = False,
     supports_streaming: bool = False,
     muted: bool = False,
-    caption: Optional[str] = None,
-    caption_markdown: Optional[str] = None,
-    caption_html: Optional[str] = None,
-    reply_to: Optional[int] = None,
-    keyboard: Optional[KeyboardType] = None,
+    caption: str | None = None,
+    caption_markdown: str | None = None,
+    caption_html: str | None = None,
+    reply_to: int | None = None,
+    keyboard: KeyboardType | None = None,
 ) -> Message:
     return await send_file(
         self,
@@ -167,27 +167,27 @@ async def send_file(
     /,
     file: str | Path | InFileLike | File,
     *,
-    size: Optional[int] = None,
-    name: Optional[str] = None,
-    mime_type: Optional[str] = None,
+    size: int | None = None,
+    name: str | None = None,
+    mime_type: str | None = None,
     compress: bool = False,
     animated: bool = False,
-    duration: Optional[float] = None,
+    duration: float | None = None,
     voice: bool = False,
-    title: Optional[str] = None,
-    performer: Optional[str] = None,
-    emoji: Optional[str] = None,
-    emoji_sticker: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    title: str | None = None,
+    performer: str | None = None,
+    emoji: str | None = None,
+    emoji_sticker: str | None = None,
+    width: int | None = None,
+    height: int | None = None,
     round: bool = False,
     supports_streaming: bool = False,
     muted: bool = False,
-    caption: Optional[str] = None,
-    caption_markdown: Optional[str] = None,
-    caption_html: Optional[str] = None,
-    reply_to: Optional[int] = None,
-    keyboard: Optional[KeyboardType] = None,
+    caption: str | None = None,
+    caption_markdown: str | None = None,
+    caption_html: str | None = None,
+    reply_to: int | None = None,
+    keyboard: KeyboardType | None = None,
 ) -> Message:
     message, entities = parse_message(
         text=caption, markdown=caption_markdown, html=caption_html, allow_empty=True
@@ -259,7 +259,7 @@ async def send_file(
                         waveform=None,
                     )
                 )
-        elif mime_type.startswith("video/"):
+        elif mime_type.startswith("video/"):  # noqa: SIM102
             if duration is not None and width is not None and height is not None:
                 attributes.append(
                     types.DocumentAttributeVideo(
@@ -295,9 +295,9 @@ async def do_send_file(
     chat: Peer | PeerRef,
     input_media: abcs.InputMedia,
     message: str,
-    entities: Optional[list[abcs.MessageEntity]],
-    reply_to: Optional[int],
-    keyboard: Optional[KeyboardType],
+    entities: list[abcs.MessageEntity] | None,
+    reply_to: int | None,
+    keyboard: KeyboardType | None,
 ) -> Message:
     random_id = generate_random_id()
     return client._build_message_map(
@@ -330,8 +330,8 @@ async def do_send_file(
 async def upload(
     client: Client,
     file: str | Path | InFileLike,
-    size: Optional[int],
-    name: Optional[str],
+    size: int | None,
+    name: str | None,
 ) -> tuple[abcs.InputFile, str]:
     # Paths are opened and closed by us. Anything else is *only* read, not closed.
     if isinstance(file, (str, Path)):
@@ -348,7 +348,7 @@ async def upload(
         if name is None:
             name = getattr(file, "name", None)
         if not isinstance(name, str):
-            raise ValueError("name must be set when sending file-like objects")
+            raise TypeError("name must be set when sending file-like objects")
         return await do_upload(client, file, size, name), name
 
 

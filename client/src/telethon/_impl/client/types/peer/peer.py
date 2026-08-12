@@ -1,7 +1,6 @@
 import abc
-from typing import Optional
 
-from telethon._impl.session import PeerAuth, PeerId, PeerRef, PeerInfo
+from telethon._impl.session import PeerAuth, PeerId, PeerInfo, PeerRef
 
 
 class Peer(abc.ABC):
@@ -37,7 +36,7 @@ class Peer(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def username(self) -> Optional[str]:
+    def username(self) -> str | None:
         """
         The primary *@username* of the user, group or chat.
 

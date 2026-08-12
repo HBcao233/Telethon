@@ -1,4 +1,4 @@
-from typing import Sequence, Type
+from collections.abc import Sequence
 
 from ...types import Channel, Group, User
 from ..event import Event
@@ -79,12 +79,12 @@ class ChatType(Combinable):
 
     def __init__(
         self,
-        type: Type[User | Group | Channel],
+        type: type[User | Group | Channel],
     ) -> None:
         self._type = type
 
     @property
-    def type(self) -> Type[User | Group | Channel]:
+    def type(self) -> type[User | Group | Channel]:
         """
         The chat type this filter is filtering on.
         """

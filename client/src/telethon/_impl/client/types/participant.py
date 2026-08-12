@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Optional, Sequence
-
-from typing_extensions import Self
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Self
 
 from telethon._impl.session import PeerId, PeerRef
 from telethon._impl.tl import abcs, types
+
 from .admin_right import AdminRight
 from .chat_restriction import ChatRestriction
 from .meta import NoPublicConstructor
@@ -66,7 +66,7 @@ class Participant(metaclass=NoPublicConstructor):
         ):
             return cls._create(client, chat, participant, chat_map)
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
     @classmethod
     def _from_raw_chat(
@@ -86,7 +86,7 @@ class Participant(metaclass=NoPublicConstructor):
         ):
             return cls._create(client, chat, participant, chat_map)
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
     def _peer_id(self) -> PeerId:
         if isinstance(
@@ -106,7 +106,7 @@ class Participant(metaclass=NoPublicConstructor):
             return peer_id(self._raw.peer)
 
     @property
-    def user(self) -> Optional[User]:
+    def user(self) -> User | None:
         """
         The user participant that is currently present in the chat.
 
@@ -131,7 +131,7 @@ class Participant(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def banned(self) -> Optional[Peer]:
+    def banned(self) -> Peer | None:
         """
         The banned participant.
 
@@ -143,7 +143,7 @@ class Participant(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def left(self) -> Optional[Peer]:
+    def left(self) -> Peer | None:
         """
         The participant that has left the group.
 
@@ -164,7 +164,7 @@ class Participant(metaclass=NoPublicConstructor):
         )
 
     @property
-    def admin_rights(self) -> Optional[set[AdminRight]]:
+    def admin_rights(self) -> set[AdminRight] | None:
         """
         The set of administrator rights this participant has been granted, if they are an administrator.
         """
@@ -180,7 +180,7 @@ class Participant(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def restrictions(self) -> Optional[set[ChatRestriction]]:
+    def restrictions(self) -> set[ChatRestriction] | None:
         """
         The set of restrictions applied to this participant, if they are banned.
         """
@@ -208,7 +208,7 @@ class Participant(metaclass=NoPublicConstructor):
         self,
         restrictions: Sequence[ChatRestriction],
         *,
-        until: Optional[datetime.datetime] = None,
+        until: datetime.datetime | None = None,
     ) -> None:
         """
         Alias for :meth:`telethon.Client.set_participant_restrictions`.

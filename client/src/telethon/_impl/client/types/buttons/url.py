@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ....tl import types
 from .inline_button import InlineButton
 
@@ -12,7 +10,7 @@ class Url(InlineButton):
     :param url: See below.
     """
 
-    def __init__(self, text: str, url: Optional[str] = None) -> None:
+    def __init__(self, text: str, url: str | None = None) -> None:
         super().__init__(text)
         self._raw = types.KeyboardButtonUrl(text=text, url=url or text)
 

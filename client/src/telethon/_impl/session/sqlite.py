@@ -1,31 +1,31 @@
-from enum import IntEnum
-from contextlib import asynccontextmanager
-from pathlib import Path
 import asyncio
-import sqlite3
-import logging
 import base64
 import ipaddress
+import logging
+import sqlite3
 import struct
-from typing import Any, Self, Tuple, AsyncGenerator
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from enum import IntEnum
+from pathlib import Path
+from typing import Any, Self
 
+from .dc_options import DEFAULT_DC, KNOWN_DC_OPTIONS
 from .session import Session
 from .types import (
+    ChannelKind,
+    ChannelState,
     DcOption,
+    PeerAuth,
     PeerId,
     PeerIdLike,
     PeerInfo,
-    PeerAuth,
     PeerKind,
-    ChannelKind,
     UpdatesState,
-    ChannelState,
     UpdateState,
 )
-from .dc_options import DEFAULT_DC, KNOWN_DC_OPTIONS
 
-
-__all__ = ["SqliteSession", "VERSION", "PeerSubtype"]
+__all__ = ["VERSION", "PeerSubtype", "SqliteSession"]
 logger = logging.getLogger("SqliteSession")
 VERSION = 1
 
@@ -107,7 +107,7 @@ class SqliteSession(Session):
             yield self._conn
 
     @staticmethod
-    def _init(conn: sqlite3.Connection) -> Tuple[int, dict[int, DcOption]]:
+    def _init(conn: sqlite3.Connection) -> tuple[int, dict[int, DcOption]]:
         conn.execute("PRAGMA journal_mode=WAL")
 
         res = conn.execute("PRAGMA user_version").fetchone()
@@ -218,7 +218,7 @@ class SqliteSession(Session):
         await self.ainit()
         peer = PeerId(peer)
 
-        def _parse(res: Tuple[Any, ...] | None) -> PeerInfo | None:
+        def _parse(res: tuple[Any, ...] | None) -> PeerInfo | None:
             if res is None:
                 return None
 

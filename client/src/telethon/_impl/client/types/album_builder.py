@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import mimetypes
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ...session import PeerRef
 from ...tl import abcs, functions, types
@@ -30,10 +30,10 @@ class AlbumBuilder(metaclass=NoPublicConstructor):
         self,
         file: str | Path | InFileLike,
         *,
-        size: Optional[int] = None,
-        caption: Optional[str] = None,
-        caption_markdown: Optional[str] = None,
-        caption_html: Optional[str] = None,
+        size: int | None = None,
+        caption: str | None = None,
+        caption_markdown: str | None = None,
+        caption_html: str | None = None,
     ) -> None:
         """
         Add a photo to the album.
@@ -93,18 +93,18 @@ class AlbumBuilder(metaclass=NoPublicConstructor):
         self,
         file: str | Path | InFileLike,
         *,
-        size: Optional[int] = None,
-        name: Optional[str] = None,
-        mime_type: Optional[str] = None,
-        duration: Optional[float] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        size: int | None = None,
+        name: str | None = None,
+        mime_type: str | None = None,
+        duration: float | None = None,
+        width: int | None = None,
+        height: int | None = None,
         round: bool = False,
         supports_streaming: bool = False,
         muted: bool = False,
-        caption: Optional[str] = None,
-        caption_markdown: Optional[str] = None,
-        caption_html: Optional[str] = None,
+        caption: str | None = None,
+        caption_markdown: str | None = None,
+        caption_html: str | None = None,
     ) -> None:
         """
         Add a video to the album.
@@ -198,7 +198,7 @@ class AlbumBuilder(metaclass=NoPublicConstructor):
         )
 
     async def send(
-        self, peer: Peer | PeerRef, *, reply_to: Optional[int] = None
+        self, peer: Peer | PeerRef, *, reply_to: int | None = None
     ) -> list[Message]:
         """
         Send the album.

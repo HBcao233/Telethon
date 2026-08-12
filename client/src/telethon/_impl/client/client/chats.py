@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from telethon._impl.session import PeerId, PeerRef, PeerKind
+from telethon._impl.session import PeerId, PeerKind, PeerRef
 from telethon._impl.tl import functions, types
+
 from ..types import (
     AdminRight,
     AsyncList,
@@ -152,7 +154,7 @@ class ProfilePhotoList(AsyncList[File]):
         super().__init__()
         self._client = client
         self._peer = peer
-        self._search_iter: Optional[SearchList] = None
+        self._search_iter: SearchList | None = None
 
     async def _fetch_next(self) -> None:
         if self._peer.id.kind == PeerKind.User:
@@ -221,7 +223,7 @@ async def set_participant_restrictions(
     participant: Peer | PeerRef,
     restrictions: Sequence[ChatRestriction],
     *,
-    until: Optional[datetime.datetime] = None,
+    until: datetime.datetime | None = None,
 ) -> None:
     chat = chat._ref
     peer = participant._ref
@@ -254,7 +256,7 @@ async def set_chat_default_restrictions(
     /,
     restrictions: Sequence[ChatRestriction],
     *,
-    until: Optional[datetime.datetime] = None,
+    until: datetime.datetime | None = None,
 ) -> None:
     banned_rights = ChatRestriction._set_to_raw(
         set(restrictions), int(until.timestamp()) if until else 0x7FFFFFFF

@@ -1,24 +1,11 @@
 import asyncio
 import datetime
 import logging
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Literal, List, Optional, Sequence, Type, TypeVar
+from typing import Any, Literal, Self, TypeVar
 
-from typing_extensions import Self
-
-from telethon.version import __version__ as default_version
-from telethon._impl.mtsender import SenderPool
-from telethon._impl.session import (
-    # MemorySession, TODO
-    PeerId,
-    PeerRef,
-    State,
-    Session,
-    SqliteSession,
-)
-from telethon._impl.tl import Request, abcs
 from telethon._impl.client.events import Event
 from telethon._impl.client.events.filters import FilterType
 from telethon._impl.client.types import (
@@ -43,6 +30,18 @@ from telethon._impl.client.types import (
     RecentAction,
     User,
 )
+from telethon._impl.mtsender import SenderPool
+from telethon._impl.session import (
+    # MemorySession, TODO
+    PeerId,
+    PeerRef,
+    Session,
+    SqliteSession,
+    State,
+)
+from telethon._impl.tl import Request, abcs
+from telethon.version import __version__ as default_version
+
 from .auth import (
     bot_sign_in,
     check_password,
@@ -91,6 +90,7 @@ from .net import (
     Config,
     connect,
     connected,
+    copy_auth_to_dc,
     default_device_model,
     default_system_version,
     disconnect,
@@ -98,7 +98,6 @@ from .net import (
     invoke_in_dc,
     run_until_disconnected,
     sync_update_state,
-    copy_auth_to_dc,
 )
 from .updates import (
     add_event_handler,
@@ -197,30 +196,30 @@ class Client:
 
     def __init__(
         self,
-        session: Optional[str | Path | Session],
+        session: str | Path | Session | None,
         api_id: int,
-        api_hash: Optional[str] = None,
+        api_hash: str | None = None,
         *,
         catch_up: bool = False,
         check_all_handlers: bool = False,
-        flood_sleep_threshold: Optional[int] = None,
-        logger: Optional[logging.Logger] = None,
-        update_queue_limit: Optional[int] = None,
+        flood_sleep_threshold: int | None = None,
+        logger: logging.Logger | None = None,
+        update_queue_limit: int | None = None,
         use_ipv6: bool = False,
-        device_model: Optional[str] = None,
-        system_version: Optional[str] = None,
-        app_version: Optional[str] = None,
-        system_lang_code: Optional[str] = None,
-        lang_code: Optional[str] = None,
+        device_model: str | None = None,
+        system_version: str | None = None,
+        app_version: str | None = None,
+        system_lang_code: str | None = None,
+        lang_code: str | None = None,
         # TODO: custom DcOption
         # datacenter: Optional[DcOption] = None
     ) -> None:
         assert __package__
         base_logger = logger or logging.getLogger(__package__[: __package__.index(".")])
 
-        self.me: Optional[User] = None
-        self._sender: Optional[SenderPool] = None
-        self._auth_copied_to_dcs: List[int] = []
+        self.me: User | None = None
+        self._sender: SenderPool | None = None
+        self._auth_copied_to_dcs: list[int] = []
 
         if isinstance(session, Session):
             self._session = session
@@ -250,14 +249,14 @@ class Client:
             # reconnection_policy=reconnection_policy,
         )
 
-        self._last_update_limit_warn: Optional[float] = None
+        self._last_update_limit_warn: float | None = None
         self._updates: asyncio.Queue[tuple[abcs.Update, State, dict[PeerId, Peer]]] = (
             asyncio.Queue(maxsize=self._config.update_queue_limit or 0)
         )
-        self._dispatcher: Optional[asyncio.Task[None]] = None
+        self._dispatcher: asyncio.Task[None] | None = None
         self._handlers: dict[
-            Type[Event],
-            list[tuple[Callable[[Any], Awaitable[Any]], Optional[FilterType]]],
+            type[Event],
+            list[tuple[Callable[[Any], Awaitable[Any]], FilterType | None]],
         ] = {}
         self._check_all_handlers = check_all_handlers
 
@@ -267,8 +266,8 @@ class Client:
         self,
         handler: Callable[[Event], Awaitable[Any]],
         /,
-        event_cls: Type[Event],
-        filter: Optional[FilterType] = None,
+        event_cls: type[Event],
+        filter: FilterType | None = None,
     ) -> None:
         """
         Register a callable to be invoked when the provided event type occurs.
@@ -504,12 +503,12 @@ class Client:
         self,
         peer: Peer | PeerRef,
         /,
-        text: Optional[str] = None,
+        text: str | None = None,
         *,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        reply_to: Optional[int] = None,
+        reply_to: int | None = None,
     ) -> Draft:
         """
         Set a draft message in a chat.
@@ -565,11 +564,11 @@ class Client:
         /,
         message_id: int,
         *,
-        text: Optional[str] = None,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        text: str | None = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        keyboard: Optional[KeyboardType] = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Edit a message.
@@ -757,7 +756,7 @@ class Client:
 
     def get_handler_filter(
         self, handler: Callable[[Event], Awaitable[Any]], /
-    ) -> Optional[FilterType]:
+    ) -> FilterType | None:
         """
         Get the filter associated to the given event handler.
 
@@ -781,7 +780,7 @@ class Client:
         """
         return get_handler_filter(self, handler)
 
-    async def get_me(self) -> Optional[User]:
+    async def get_me(self) -> User | None:
         """
         Get information about :term:`yourself`.
 
@@ -809,10 +808,10 @@ class Client:
         self,
         chat: Peer | PeerRef,
         /,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         *,
-        offset_id: Optional[int] = None,
-        offset_date: Optional[datetime.datetime] = None,
+        offset_id: int | None = None,
+        offset_date: datetime.datetime | None = None,
     ) -> AsyncList[Message]:
         """
         Get the message history from a :term:`peer`, from the newest message to the oldest.
@@ -941,7 +940,7 @@ class Client:
         /,
         query: str = "",
         *,
-        peer: Optional[Peer | PeerRef] = None,
+        peer: Peer | PeerRef | None = None,
     ) -> AsyncIterator[InlineResult]:
         """
         Perform a *@bot inline query*.
@@ -980,7 +979,7 @@ class Client:
         return await inline_query(self, bot, query, peer=peer)
 
     async def interactive_login(
-        self, phone_or_token: Optional[str] = None, *, password: Optional[str] = None
+        self, phone_or_token: str | None = None, *, password: str | None = None
     ) -> User:
         """
         Begin an interactive login if needed.
@@ -1032,7 +1031,7 @@ class Client:
         return await is_authorized(self)
 
     def on(
-        self, event_cls: Type[Event], /, filter: Optional[FilterType] = None
+        self, event_cls: type[Event], /, filter: FilterType | None = None
     ) -> Callable[
         [Callable[[Event], Awaitable[Any]]], Callable[[Event], Awaitable[Any]]
     ]:
@@ -1295,11 +1294,11 @@ class Client:
 
     def search_all_messages(
         self,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         *,
-        query: Optional[str] = None,
-        offset_id: Optional[int] = None,
-        offset_date: Optional[datetime.datetime] = None,
+        query: str | None = None,
+        offset_id: int | None = None,
+        offset_date: datetime.datetime | None = None,
     ) -> AsyncList[Message]:
         """
         Perform a global message search.
@@ -1341,11 +1340,11 @@ class Client:
         self,
         chat: Peer | PeerRef,
         /,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         *,
-        query: Optional[str] = None,
-        offset_id: Optional[int] = None,
-        offset_date: Optional[datetime.datetime] = None,
+        query: str | None = None,
+        offset_id: int | None = None,
+        offset_date: datetime.datetime | None = None,
     ) -> AsyncList[Message]:
         """
         Search messages in a chat.
@@ -1391,18 +1390,18 @@ class Client:
         /,
         file: str | Path | InFileLike | File,
         *,
-        size: Optional[int] = None,
-        name: Optional[str] = None,
-        mime_type: Optional[str] = None,
-        duration: Optional[float] = None,
+        size: int | None = None,
+        name: str | None = None,
+        mime_type: str | None = None,
+        duration: float | None = None,
         voice: bool = False,
-        title: Optional[str] = None,
-        performer: Optional[str] = None,
-        caption: Optional[str] = None,
-        caption_markdown: Optional[str] = None,
-        caption_html: Optional[str] = None,
-        reply_to: Optional[int] = None,
-        keyboard: Optional[KeyboardType] = None,
+        title: str | None = None,
+        performer: str | None = None,
+        caption: str | None = None,
+        caption_markdown: str | None = None,
+        caption_html: str | None = None,
+        reply_to: int | None = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Send an audio file.
@@ -1455,27 +1454,27 @@ class Client:
         /,
         file: str | Path | InFileLike | File,
         *,
-        size: Optional[int] = None,
-        name: Optional[str] = None,
-        mime_type: Optional[str] = None,
+        size: int | None = None,
+        name: str | None = None,
+        mime_type: str | None = None,
         compress: bool = False,
         animated: bool = False,
-        duration: Optional[float] = None,
+        duration: float | None = None,
         voice: bool = False,
-        title: Optional[str] = None,
-        performer: Optional[str] = None,
-        emoji: Optional[str] = None,
-        emoji_sticker: Optional[str] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        title: str | None = None,
+        performer: str | None = None,
+        emoji: str | None = None,
+        emoji_sticker: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
         round: bool = False,
         supports_streaming: bool = False,
         muted: bool = False,
-        caption: Optional[str] = None,
-        caption_markdown: Optional[str] = None,
-        caption_html: Optional[str] = None,
-        reply_to: Optional[int] = None,
-        keyboard: Optional[KeyboardType] = None,
+        caption: str | None = None,
+        caption_markdown: str | None = None,
+        caption_html: str | None = None,
+        reply_to: int | None = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Send any type of file with any amount of attributes.
@@ -1636,13 +1635,13 @@ class Client:
         self,
         chat: Peer | PeerRef,
         /,
-        text: Optional[str | Message] = None,
+        text: str | Message | None = None,
         *,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        reply_to: Optional[int] = None,
-        keyboard: Optional[KeyboardType] = None,
+        reply_to: int | None = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Send a message.
@@ -1686,17 +1685,17 @@ class Client:
         /,
         file: str | Path | InFileLike | File,
         *,
-        size: Optional[int] = None,
-        name: Optional[str] = None,
-        mime_type: Optional[str] = None,
+        size: int | None = None,
+        name: str | None = None,
+        mime_type: str | None = None,
         compress: bool = True,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
-        caption: Optional[str] = None,
-        caption_markdown: Optional[str] = None,
-        caption_html: Optional[str] = None,
-        reply_to: Optional[int] = None,
-        keyboard: Optional[KeyboardType] = None,
+        width: int | None = None,
+        height: int | None = None,
+        caption: str | None = None,
+        caption_markdown: str | None = None,
+        caption_html: str | None = None,
+        reply_to: int | None = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Send a photo file.
@@ -1751,20 +1750,20 @@ class Client:
         /,
         file: str | Path | InFileLike | File,
         *,
-        size: Optional[int] = None,
-        name: Optional[str] = None,
-        mime_type: Optional[str] = None,
-        duration: Optional[float] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        size: int | None = None,
+        name: str | None = None,
+        mime_type: str | None = None,
+        duration: float | None = None,
+        width: int | None = None,
+        height: int | None = None,
         round: bool = False,
         supports_streaming: bool = False,
         muted: bool = False,
-        caption: Optional[str] = None,
-        caption_markdown: Optional[str] = None,
-        caption_html: Optional[str] = None,
-        reply_to: Optional[int] = None,
-        keyboard: Optional[KeyboardType] = None,
+        caption: str | None = None,
+        caption_markdown: str | None = None,
+        caption_html: str | None = None,
+        reply_to: int | None = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Send a video file.
@@ -1820,7 +1819,7 @@ class Client:
         /,
         restrictions: Sequence[ChatRestriction],
         *,
-        until: Optional[datetime.datetime] = None,
+        until: datetime.datetime | None = None,
     ) -> None:
         """
         Set the default restrictions to apply to all participant in a chat.
@@ -1860,7 +1859,7 @@ class Client:
         self,
         handler: Callable[[Event], Awaitable[Any]],
         /,
-        filter: Optional[FilterType] = None,
+        filter: FilterType | None = None,
     ) -> None:
         """
         Set the filter to use for the given event handler.
@@ -1936,7 +1935,7 @@ class Client:
         participant: Peer | PeerRef,
         restrictions: Sequence[ChatRestriction],
         *,
-        until: Optional[datetime.datetime] = None,
+        until: datetime.datetime | None = None,
     ) -> None:
         """
         Set the restrictions to apply to a participant in the chat.
@@ -2071,12 +2070,12 @@ class Client:
     def _build_message_map(
         self,
         result: abcs.Updates,
-        peer: Optional[PeerRef],
+        peer: PeerRef | None,
     ) -> MessageMap:
         return build_message_map(self, result, peer)
 
     async def _upload(
-        self, fd: str | Path | InFileLike, size: Optional[int], name: Optional[str]
+        self, fd: str | Path | InFileLike, size: int | None, name: str | None
     ) -> tuple[abcs.InputFile, str]:
         return await upload(self, fd, size, name)
 
@@ -2095,8 +2094,8 @@ class Client:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
     ) -> None:
         await disconnect(self)

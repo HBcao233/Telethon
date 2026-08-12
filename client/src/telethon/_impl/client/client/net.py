@@ -5,12 +5,12 @@ import logging
 import platform
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Optional, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
-from telethon._impl.mtsender import SenderPool, RpcError
-
-from telethon.version import __version__
+from telethon._impl.mtsender import RpcError, SenderPool
 from telethon._impl.tl import Request, functions, types
+from telethon.version import __version__
+
 from ..errors import adapt_rpc
 from .updates import dispatcher, process_socket_updates
 
@@ -53,7 +53,7 @@ class Config:
     # TODO
     # datacenter: Optional[DataCenter] = None
     flood_sleep_threshold: int = 60
-    update_queue_limit: Optional[int] = None
+    update_queue_limit: int | None = None
 
 
 async def connect(self: Client) -> None:
@@ -101,7 +101,7 @@ async def disconnect(self: Client) -> None:
         )
 
 
-async def invoke_in_dc(
+async def invoke_in_dc[Request](
     client: Client,
     dc_id: int,
     request: Request[Return],
@@ -124,7 +124,7 @@ async def invoke_in_dc(
     return request.deserialize_response(response)
 
 
-async def invoke(
+async def invoke[Request](
     client: Client,
     request: Request[Return],
 ) -> Return:

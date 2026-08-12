@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Self
 
 from ...session import PeerRef
 from ...tl import abcs, functions, types
@@ -38,7 +36,7 @@ class ButtonCallback(Event):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(update, types.UpdateBotCallbackQuery) and update.data is not None:
             return cls._create(client, update, chat_map)
         else:
@@ -51,7 +49,7 @@ class ButtonCallback(Event):
 
     async def answer(
         self,
-        text: Optional[str] = None,
+        text: str | None = None,
         alert: bool = False,
     ) -> None:
         """
@@ -77,7 +75,7 @@ class ButtonCallback(Event):
             )
         )
 
-    async def get_message(self) -> Optional[Message]:
+    async def get_message(self) -> Message | None:
         """
         Get the :class:`~telethon.types.Message` containing the button that was clicked.
 
@@ -115,7 +113,7 @@ class InlineQuery(Event):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(update, types.UpdateBotInlineQuery):
             return cls._create(update)
         else:

@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import datetime
 import sys
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal, Self
 
-from typing_extensions import Self
-
-from telethon._impl.session import PeerRef, PeerKind
+from telethon._impl.session import PeerKind, PeerRef
 from telethon._impl.tl import abcs, functions, types
+
 from ..types import (
     AsyncList,
     KeyboardType,
@@ -28,13 +27,13 @@ async def send_message(
     self: Client,
     chat: Peer | PeerRef,
     /,
-    text: Optional[str | Message] = None,
+    text: str | Message | None = None,
     *,
-    markdown: Optional[str] = None,
-    html: Optional[str] = None,
+    markdown: str | None = None,
+    html: str | None = None,
     link_preview: bool = False,
-    reply_to: Optional[int] = None,
-    keyboard: Optional[KeyboardType] = None,
+    reply_to: int | None = None,
+    keyboard: KeyboardType | None = None,
 ) -> Message:
     random_id = generate_random_id()
 
@@ -123,11 +122,11 @@ async def edit_message(
     /,
     message_id: int,
     *,
-    text: Optional[str] = None,
-    markdown: Optional[str] = None,
-    html: Optional[str] = None,
+    text: str | None = None,
+    markdown: str | None = None,
+    html: str | None = None,
     link_preview: bool = False,
-    keyboard: Optional[KeyboardType] = None,
+    keyboard: KeyboardType | None = None,
 ) -> Message:
     message, entities = parse_message(
         text=text, markdown=markdown, html=html, allow_empty=False
@@ -221,7 +220,7 @@ class MessageList(AsyncList[Message]):
         ):
             self._total = messages.count
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
         chat_map = build_chat_map(client, messages.users, messages.chats)
         self._buffer.extend(
@@ -304,10 +303,10 @@ def get_messages(
     self: Client,
     chat: Peer | PeerRef,
     /,
-    limit: Optional[int] = None,
+    limit: int | None = None,
     *,
-    offset_id: Optional[int] = None,
-    offset_date: Optional[datetime.datetime] = None,
+    offset_id: int | None = None,
+    offset_date: datetime.datetime | None = None,
 ) -> AsyncList[Message]:
     return HistoryList(
         self,
@@ -410,11 +409,11 @@ def search_messages(
     self: Client,
     chat: Peer | PeerRef,
     /,
-    limit: Optional[int] = None,
+    limit: int | None = None,
     *,
-    query: Optional[str] = None,
-    offset_id: Optional[int] = None,
-    offset_date: Optional[datetime.datetime] = None,
+    query: str | None = None,
+    offset_id: int | None = None,
+    offset_date: datetime.datetime | None = None,
 ) -> AsyncList[Message]:
     return SearchList(
         self,
@@ -478,11 +477,11 @@ class GlobalSearchList(MessageList):
 
 def search_all_messages(
     self: Client,
-    limit: Optional[int] = None,
+    limit: int | None = None,
     *,
-    query: Optional[str] = None,
-    offset_id: Optional[int] = None,
-    offset_date: Optional[datetime.datetime] = None,
+    query: str | None = None,
+    offset_id: int | None = None,
+    offset_date: datetime.datetime | None = None,
 ) -> AsyncList[Message]:
     return GlobalSearchList(
         self,
@@ -558,12 +557,12 @@ async def read_message(
 
 
 class MessageMap:
-    __slots__ = ("_client", "_peer", "_random_id_to_id", "_id_to_message")
+    __slots__ = ("_client", "_id_to_message", "_peer", "_random_id_to_id")
 
     def __init__(
         self,
         client: Client,
-        peer: Optional[PeerRef],
+        peer: PeerRef | None,
         random_id_to_id: dict[int, int],
         id_to_message: dict[int, Message],
     ) -> None:
@@ -599,7 +598,7 @@ class MessageMap:
 def build_message_map(
     client: Client,
     result: abcs.Updates,
-    peer: Optional[PeerRef],
+    peer: PeerRef | None,
 ) -> MessageMap:
     if isinstance(result, (types.Updates, types.UpdatesCombined)):
         updates = result.updates

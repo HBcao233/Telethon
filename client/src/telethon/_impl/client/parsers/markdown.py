@@ -1,6 +1,6 @@
 import re
 from collections.abc import Iterator
-from typing import Any, Type
+from typing import Any
 
 import markdown_it
 import markdown_it.token
@@ -20,7 +20,7 @@ from ...tl.types import (
 from .strings import add_surrogate, del_surrogate, within_surrogate
 
 MARKDOWN = markdown_it.MarkdownIt().enable("strikethrough")
-DELIMITERS: dict[Type[MessageEntity], tuple[str, str]] = {
+DELIMITERS: dict[type[MessageEntity], tuple[str, str]] = {
     MessageEntityBlockquote: ("> ", ""),
     MessageEntityBold: ("**", "**"),
     MessageEntityCode: ("`", "`"),
@@ -82,9 +82,7 @@ def parse(message: str) -> tuple[str, list[MessageEntity]]:
         else:
             for entity in reversed(entities):
                 if isinstance(entity, ty):
-                    setattr(
-                        entity, "length", len(message) - getattr(entity, "offset", 0)
-                    )
+                    entity.length = len(message) - getattr(entity, "offset", 0)
                     break
 
     parsed = MARKDOWN.parse(add_surrogate(message.strip()))

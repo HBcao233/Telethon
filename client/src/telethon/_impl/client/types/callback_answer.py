@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ...tl import abcs, types
 from .meta import NoPublicConstructor
 
@@ -14,14 +12,14 @@ class CallbackAnswer(metaclass=NoPublicConstructor):
         self._raw = raw
 
     @property
-    def text(self) -> Optional[str]:
+    def text(self) -> str | None:
         """
         The answer's text, usually displayed as a toast.
         """
         return self._raw.message
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         """
         The answer's URL.
         """

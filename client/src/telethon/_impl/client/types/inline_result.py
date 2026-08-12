@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ...session import PeerRef
 from ...tl import functions, types
@@ -24,7 +24,7 @@ class InlineResult(metaclass=NoPublicConstructor):
         client: Client,
         results: types.messages.BotResults,
         result: types.BotInlineMediaResult | types.BotInlineResult,
-        default_peer: Optional[PeerRef],
+        default_peer: PeerRef | None,
     ) -> None:
         self._client = client
         self._raw_results = results
@@ -43,7 +43,7 @@ class InlineResult(metaclass=NoPublicConstructor):
         return self._raw.title or ""
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str | None:
         """
         The description of the result, if available.
         """
@@ -51,7 +51,7 @@ class InlineResult(metaclass=NoPublicConstructor):
 
     async def send(
         self,
-        peer: Optional[Peer | PeerRef] = None,
+        peer: Peer | PeerRef | None = None,
     ) -> Message:
         """
         Send the result to the desired chat.

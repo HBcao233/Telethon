@@ -1,5 +1,4 @@
 from pytest import mark, raises
-
 from telethon._impl.crypto.two_factor_auth import (
     calculate_2fa,
     check_p_prime_and_subgroup,

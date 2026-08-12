@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Self
 
 from telethon._impl.session import PeerRef
 from telethon._impl.tl import abcs, functions, types
+
 from ..types import InlineResult, NoPublicConstructor, Peer, User
 
 if TYPE_CHECKING:
@@ -19,13 +18,13 @@ class InlineResults(metaclass=NoPublicConstructor):
         client: Client,
         bot: abcs.InputUser,
         query: str,
-        peer: Optional[PeerRef],
+        peer: PeerRef | None,
     ) -> None:
         self._client = client
         self._bot = bot
         self._query = query
         self._peer = peer
-        self._offset: Optional[str] = ""
+        self._offset: str | None = ""
         self._buffer: list[InlineResult] = []
         self._done = False
 
@@ -73,7 +72,7 @@ async def inline_query(
     /,
     query: str = "",
     *,
-    peer: Optional[Peer | PeerRef] = None,
+    peer: Peer | PeerRef | None = None,
 ) -> AsyncIterator[InlineResult]:
     input_user = bot._ref._to_input_user()
 

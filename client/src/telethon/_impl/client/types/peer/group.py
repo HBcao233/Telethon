@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Self
 
-from typing_extensions import Self
+from telethon._impl.session import ChannelKind, PeerAuth, PeerId, PeerInfo, PeerRef
 
-from telethon._impl.session import ChannelKind, PeerAuth, PeerId, PeerRef, PeerInfo
 from ....tl import abcs, types
 from ..chat_restriction import ChatRestriction
 from ..meta import NoPublicConstructor
@@ -43,10 +43,10 @@ class Group(Peer, metaclass=NoPublicConstructor):
             return cls._create(client, chat)
         elif isinstance(chat, (types.Channel, types.ChannelForbidden)):
             if chat.broadcast:
-                raise RuntimeError("cannot create group from broadcast channel")
+                raise TypeError("cannot create group from broadcast channel")
             return cls._create(client, chat)
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
     # region Overrides
 
@@ -67,7 +67,7 @@ class Group(Peer, metaclass=NoPublicConstructor):
         return getattr(self._raw, "title", None) or ""
 
     @property
-    def username(self) -> Optional[str]:
+    def username(self) -> str | None:
         return getattr(self._raw, "username", None)
 
     @property
@@ -120,7 +120,7 @@ class Group(Peer, metaclass=NoPublicConstructor):
         self,
         restrictions: Sequence[ChatRestriction],
         *,
-        until: Optional[datetime.datetime] = None,
+        until: datetime.datetime | None = None,
     ) -> None:
         """
         Alias for :meth:`telethon.Client.set_chat_default_restrictions`.

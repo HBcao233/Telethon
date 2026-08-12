@@ -1,9 +1,8 @@
-from typing import Optional
+from typing import Self
 
-from typing_extensions import Self
-
-from telethon._impl.session import ChannelKind, PeerAuth, PeerId, PeerRef, PeerInfo
+from telethon._impl.session import ChannelKind, PeerAuth, PeerId, PeerInfo, PeerRef
 from telethon._impl.tl import abcs, types
+
 from ..meta import NoPublicConstructor
 from .peer import Peer
 
@@ -25,13 +24,13 @@ class Channel(Peer, metaclass=NoPublicConstructor):
     @classmethod
     def _from_raw(cls, chat: abcs.Chat) -> Self:
         if isinstance(chat, (types.ChatEmpty, types.Chat, types.ChatForbidden)):
-            raise RuntimeError("cannot create channel from group chat")
+            raise TypeError("cannot create channel from group chat")
         elif isinstance(chat, (types.Channel, types.ChannelForbidden)):
             if not chat.broadcast:
-                raise RuntimeError("cannot create group from broadcast channel")
+                raise TypeError("cannot create group from broadcast channel")
             return cls._create(chat)
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
     # region Overrides
 
@@ -49,7 +48,7 @@ class Channel(Peer, metaclass=NoPublicConstructor):
         return self._raw.title
 
     @property
-    def username(self) -> Optional[str]:
+    def username(self) -> str | None:
         return getattr(self._raw, "username", None)
 
     @property

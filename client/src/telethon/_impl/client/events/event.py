@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Self
 
 from telethon._impl.tl import abcs
+
 from ..types import NoPublicConstructor, PeerMap
 
 if TYPE_CHECKING:
@@ -22,7 +21,7 @@ class Event(abc.ABC, metaclass=NoPublicConstructor):
         """
         The :class:`~telethon.Client` that received this update.
         """
-        return getattr(self, "_client")  # type: ignore [no-any-return]
+        return self._client  # type: ignore [no-any-return]
 
     @classmethod
     @abc.abstractmethod
@@ -31,7 +30,7 @@ class Event(abc.ABC, metaclass=NoPublicConstructor):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         pass
 
 
@@ -62,7 +61,7 @@ class Raw(Event):
         client: Client,
         update: abcs.Update,
         chat_map: PeerMap,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         return cls._create(client, update, chat_map)
 
     def __str__(self) -> str:

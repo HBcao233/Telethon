@@ -2,9 +2,8 @@ import asyncio
 import logging
 
 from pytest import LogCaptureFixture, mark
-
-from telethon._impl.session import SqliteSession
 from telethon._impl.mtsender import SenderPool
+from telethon._impl.session import SqliteSession
 from telethon._impl.tl import LAYER, functions
 
 API_ID = 4

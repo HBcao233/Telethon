@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-from telethon._impl.session import PeerRef
-from telethon._impl.tl import abcs, functions, types
 from telethon._impl.client.types import (
     AsyncList,
     Dialog,
@@ -14,6 +12,8 @@ from telethon._impl.client.types import (
     build_msg_map,
     parse_message,
 )
+from telethon._impl.session import PeerRef
+from telethon._impl.tl import abcs, functions, types
 
 if TYPE_CHECKING:
     from .client import Client
@@ -44,7 +44,7 @@ class DialogList(AsyncList[Dialog]):
         elif isinstance(result, types.messages.DialogsSlice):
             self._total = result.count
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
         assert isinstance(result, (types.messages.Dialogs, types.messages.DialogsSlice))
 
@@ -122,17 +122,17 @@ async def edit_draft(
     self: Client,
     peer: Peer | PeerRef,
     /,
-    text: Optional[str] = None,
+    text: str | None = None,
     *,
-    markdown: Optional[str] = None,
-    html: Optional[str] = None,
+    markdown: str | None = None,
+    html: str | None = None,
     link_preview: bool = False,
     invert_media: bool = False,
-    reply_to: Optional[int | abcs.InputReplyTo] = None,
-    media: Optional[abcs.InputMedia] = None,
-    effect: Optional[int] = None,
-    suggested_post: Optional[abcs.SuggestedPost] = None,
-    rich_message: Optional[abcs.InputRichMessage] = None,
+    reply_to: int | abcs.InputReplyTo | None = None,
+    media: abcs.InputMedia | None = None,
+    effect: int | None = None,
+    suggested_post: abcs.SuggestedPost | None = None,
+    rich_message: abcs.InputRichMessage | None = None,
 ) -> Draft:
     peer = peer._ref
     message, entities = parse_message(

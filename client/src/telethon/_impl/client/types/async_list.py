@@ -1,14 +1,12 @@
 import abc
 from collections import deque
 from collections.abc import Generator
-from typing import Any, Generic, TypeVar
-
-from typing_extensions import Self
+from typing import Any, Self, TypeVar
 
 T = TypeVar("T")
 
 
-class AsyncList(abc.ABC, Generic[T]):
+class AsyncList[T](abc.ABC):
     """
     An asynchronous list.
 

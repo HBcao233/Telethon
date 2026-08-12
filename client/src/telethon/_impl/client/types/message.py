@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import datetime
 import time
-from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
-
-from typing_extensions import Self
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from ...session import PeerRef
 from ...tl import abcs, types
@@ -35,9 +34,9 @@ def generate_random_id() -> int:
     return _last_id
 
 
-def adapt_date(date: Optional[int]) -> Optional[datetime.datetime]:
+def adapt_date(date: int | None) -> datetime.datetime | None:
     return (
-        datetime.datetime.fromtimestamp(date, tz=datetime.timezone.utc)
+        datetime.datetime.fromtimestamp(date, tz=datetime.UTC)
         if date is not None
         else None
     )
@@ -141,7 +140,7 @@ class Message(metaclass=NoPublicConstructor):
         return self._raw.id
 
     @property
-    def grouped_id(self) -> Optional[int]:
+    def grouped_id(self) -> int | None:
         """
         If the message is grouped with others in an album, return the group identifier.
 
@@ -152,14 +151,14 @@ class Message(metaclass=NoPublicConstructor):
         return getattr(self._raw, "grouped_id", None)
 
     @property
-    def text(self) -> Optional[str]:
+    def text(self) -> str | None:
         """
         The message text without any formatting.
         """
         return getattr(self._raw, "message", None)
 
     @property
-    def text_html(self) -> Optional[str]:
+    def text_html(self) -> str | None:
         """
         The message text formatted using standard `HTML elements <https://developer.mozilla.org/en-US/docs/Web/HTML/Element>`_.
 
@@ -173,7 +172,7 @@ class Message(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def text_markdown(self) -> Optional[str]:
+    def text_markdown(self) -> str | None:
         """
         The message text formatted as `CommonMark's markdown <https://commonmark.org/>`_.
 
@@ -187,7 +186,7 @@ class Message(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def date(self) -> Optional[datetime.datetime]:
+    def date(self) -> datetime.datetime | None:
         """
         The date when the message was sent.
         """
@@ -207,7 +206,7 @@ class Message(metaclass=NoPublicConstructor):
         return self._chat_map[pid]
 
     @property
-    def sender(self) -> Optional[Peer]:
+    def sender(self) -> Peer | None:
         """
         The :term:`peer` that sent the message.
 
@@ -222,7 +221,7 @@ class Message(metaclass=NoPublicConstructor):
         else:
             return None
 
-    def _file(self) -> Optional[File]:
+    def _file(self) -> File | None:
         return (
             File._try_from_raw_message_media(self._client, self._raw.media)
             if isinstance(self._raw, types.Message) and self._raw.media
@@ -230,7 +229,7 @@ class Message(metaclass=NoPublicConstructor):
         )
 
     @property
-    def photo(self) -> Optional[File]:
+    def photo(self) -> File | None:
         """
         The compressed photo media :attr:`file` in the message.
 
@@ -240,7 +239,7 @@ class Message(metaclass=NoPublicConstructor):
         return photo if photo and photo._photo else None
 
     @property
-    def audio(self) -> Optional[File]:
+    def audio(self) -> File | None:
         """
         The audio media :attr:`file` in the message.
 
@@ -257,7 +256,7 @@ class Message(metaclass=NoPublicConstructor):
         )
 
     @property
-    def video(self) -> Optional[File]:
+    def video(self) -> File | None:
         """
         The video media :attr:`file` in the message.
 
@@ -274,7 +273,7 @@ class Message(metaclass=NoPublicConstructor):
         )
 
     @property
-    def file(self) -> Optional[File]:
+    def file(self) -> File | None:
         """
         The downloadable file in the message.
 
@@ -288,7 +287,7 @@ class Message(metaclass=NoPublicConstructor):
         return self._file()
 
     @property
-    def replied_message_id(self) -> Optional[int]:
+    def replied_message_id(self) -> int | None:
         """
         Get the message identifier of the replied message.
 
@@ -321,7 +320,7 @@ class Message(metaclass=NoPublicConstructor):
         """
         return getattr(self._raw, "out", None) is True
 
-    async def get_replied_message(self) -> Optional[Message]:
+    async def get_replied_message(self) -> Message | None:
         """
         Alias for :meth:`telethon.Client.get_messages_with_ids`.
 
@@ -337,12 +336,12 @@ class Message(metaclass=NoPublicConstructor):
 
     async def respond(
         self,
-        text: Optional[str | Message] = None,
+        text: str | Message | None = None,
         *,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        keyboard: Optional[KeyboardType] = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Alias for :meth:`telethon.Client.send_message`.
@@ -364,12 +363,12 @@ class Message(metaclass=NoPublicConstructor):
 
     async def reply(
         self,
-        text: Optional[str | Message] = None,
+        text: str | Message | None = None,
         *,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        keyboard: Optional[KeyboardType] = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Alias for :meth:`telethon.Client.send_message` with the ``reply_to`` parameter set to this message.
@@ -400,11 +399,11 @@ class Message(metaclass=NoPublicConstructor):
 
     async def edit(
         self,
-        text: Optional[str] = None,
-        markdown: Optional[str] = None,
-        html: Optional[str] = None,
+        text: str | None = None,
+        markdown: str | None = None,
+        html: str | None = None,
         link_preview: bool = False,
-        keyboard: Optional[KeyboardType] = None,
+        keyboard: KeyboardType | None = None,
     ) -> Message:
         """
         Alias for :meth:`telethon.Client.edit_message`.
@@ -458,7 +457,7 @@ class Message(metaclass=NoPublicConstructor):
         pass
 
     @property
-    def buttons(self) -> Optional[list[list[Button]]]:
+    def buttons(self) -> list[list[Button]] | None:
         """
         The buttons attached to the message.
 
@@ -527,11 +526,11 @@ def build_msg_map(
 
 def parse_message(
     *,
-    text: Optional[str],
-    markdown: Optional[str],
-    html: Optional[str],
+    text: str | None,
+    markdown: str | None,
+    html: str | None,
     allow_empty: bool,
-) -> tuple[str, Optional[list[abcs.MessageEntity]]]:
+) -> tuple[str, list[abcs.MessageEntity] | None]:
     cnt = sum((text is not None, markdown is not None, html is not None))
     if cnt != 1:
         if cnt == 0 and allow_empty:

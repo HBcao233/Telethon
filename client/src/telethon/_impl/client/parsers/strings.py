@@ -1,5 +1,4 @@
 import struct
-from typing import Optional
 
 
 def add_surrogate(text: str) -> str:
@@ -19,7 +18,7 @@ def del_surrogate(text: str) -> str:
     return text.encode("utf-16", "surrogatepass").decode("utf-16")
 
 
-def within_surrogate(text: str, index: int, *, length: Optional[int] = None) -> bool:
+def within_surrogate(text: str, index: int, *, length: int | None = None) -> bool:
     """
     :data:`True` if ``index`` is within a surrogate (before and after it, not at!).
     """

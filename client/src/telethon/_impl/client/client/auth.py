@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import getpass
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from telethon._impl.crypto import two_factor_auth
 from telethon._impl.mtsender import RpcError
 from telethon._impl.session import PeerInfo, UpdateState
 from telethon._impl.tl import abcs, functions, types
+
 from ..types import LoginToken, PasswordToken, User
 
 if TYPE_CHECKING:
@@ -58,7 +59,7 @@ async def complete_login(self: Client, auth: abcs.auth.Authorization) -> User:
     return user
 
 
-async def handle_migrate(client: Client, dc_id: Optional[int]) -> None:
+async def handle_migrate(client: Client, dc_id: int | None) -> None:
     assert dc_id is not None
     await client._session.set_home_dc_id(dc_id)
 
@@ -135,9 +136,9 @@ async def sign_in(self: Client, token: LoginToken, code: str) -> User | Password
 
 async def interactive_login(
     self: Client,
-    phone_or_token: Optional[str] = None,
+    phone_or_token: str | None = None,
     *,
-    password: Optional[str] = None,
+    password: str | None = None,
 ) -> User:
     if me := await self.get_me():
         return me
@@ -216,7 +217,7 @@ async def check_password(
     if not isinstance(
         algo, types.PasswordKdfAlgoSha256Sha256Pbkdf2HmacshA512Iter100000Sha256ModPow
     ):
-        raise RuntimeError("unrecognised 2FA algorithm")
+        raise TypeError("unrecognised 2FA algorithm")
 
     if not two_factor_auth.check_p_and_g(algo.p, algo.g):
         token = await get_password_information(self)
@@ -225,7 +226,7 @@ async def check_password(
             algo,
             types.PasswordKdfAlgoSha256Sha256Pbkdf2HmacshA512Iter100000Sha256ModPow,
         ):
-            raise RuntimeError("unrecognised 2FA algorithm")
+            raise TypeError("unrecognised 2FA algorithm")
         if not two_factor_auth.check_p_and_g(algo.p, algo.g):
             raise RuntimeError("failed to get correct password information")
 

@@ -1,5 +1,5 @@
 from collections.abc import Buffer
-from typing import final, Self
+from typing import Self, final
 
 from .session import Session
 from .session.updates import MessageBoxes, UpdateAndPeers

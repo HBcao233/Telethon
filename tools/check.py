@@ -10,12 +10,12 @@ BLACK_IGNORE = r"tl/(abcs|functions|types)/\w+.py"
 
 
 def run(*args: str) -> int:
-    return subprocess.run((sys.executable, "-m", *args)).returncode
+    return subprocess.run((sys.executable, "-m", *args), check=False).returncode
 
 
 def main() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
-        exit(
+        sys.exit(
             run("mypy", "--strict", ".")
             or run("ruff", "check", ".")
             or run("sphinx", "-M", "dummy", "client/doc", tmp_dir, "-n", "-W")

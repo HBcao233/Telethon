@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Self
 
 from ...tl import abcs, types
 from .draft import Draft
@@ -56,7 +54,7 @@ class Dialog(metaclass=NoPublicConstructor):
         return self._chat_map[peer_id(self._raw.peer)]
 
     @property
-    def draft(self) -> Optional[Draft]:
+    def draft(self) -> Draft | None:
         """
         The message draft within this dialog, if any.
 
@@ -74,7 +72,7 @@ class Dialog(metaclass=NoPublicConstructor):
             return None
 
     @property
-    def latest_message(self) -> Optional[Message]:
+    def latest_message(self) -> Message | None:
         """
         The latest message sent or received in this dialog, if any.
 
@@ -97,4 +95,4 @@ class Dialog(metaclass=NoPublicConstructor):
                 + self._raw.unread_muted_messages_count
             )
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")

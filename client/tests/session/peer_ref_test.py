@@ -1,6 +1,5 @@
 from pytest import raises
-
-from telethon._impl.session import PeerId, PeerRef, PeerAuth, PeerKind
+from telethon._impl.session import PeerAuth, PeerId, PeerKind, PeerRef
 from telethon._impl.tl import types
 
 USER = PeerRef(PeerId.user(12), 34)

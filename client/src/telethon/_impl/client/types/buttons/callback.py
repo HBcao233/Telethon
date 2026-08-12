@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ....tl import functions, types
 from ..callback_answer import CallbackAnswer
 from .inline_button import InlineButton
@@ -13,7 +11,7 @@ class Callback(InlineButton):
     :param data: See below.
     """
 
-    def __init__(self, text: str, data: Optional[bytes] = None) -> None:
+    def __init__(self, text: str, data: bytes | None = None) -> None:
         super().__init__(text)
         self._raw = types.KeyboardButtonCallback(
             requires_password=False,
@@ -37,7 +35,7 @@ class Callback(InlineButton):
         assert isinstance(self._raw, types.KeyboardButtonCallback)
         self._raw.data = value
 
-    async def click(self) -> Optional[CallbackAnswer]:
+    async def click(self) -> CallbackAnswer | None:
         """
         Click the button, sending the button's :attr:`data` to the bot.
 

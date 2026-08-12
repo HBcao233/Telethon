@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-from typing import TYPE_CHECKING, Optional, Iterable, TypeAlias, Sequence
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING
 
 from telethon._impl.session import PeerId
 from telethon._impl.tl import abcs, types
+
 from .channel import Channel
 from .group import Group
 from .peer import Peer
@@ -14,7 +16,7 @@ from .user import User
 if TYPE_CHECKING:
     from ...client.client import Client
 
-PeerMap: TypeAlias = dict[PeerId, Peer]
+type PeerMap = dict[PeerId, Peer]
 
 
 def build_chat_map(
@@ -42,8 +44,7 @@ def build_chat_map(
                 await client._session.cache_peer(peer._info)
             except Exception:
                 client._config.base_logger.warning(
-                    f"Failed to cache peer {peer.id}",
-                    exc_info=True
+                    f"Failed to cache peer {peer.id}", exc_info=True
                 )
 
     asyncio.create_task(_cache_peers(result.values()))
@@ -59,10 +60,10 @@ def peer_id(peer: abcs.Peer) -> PeerId:
     elif isinstance(peer, types.PeerChannel):
         return PeerId.channel(peer.channel_id)
     else:
-        raise RuntimeError("unexpected case")
+        raise TypeError("unexpected case")
 
 
-def expand_peer(client: Client, peer: abcs.Peer, *, broadcast: Optional[bool]) -> Peer:
+def expand_peer(client: Client, peer: abcs.Peer, *, broadcast: bool | None) -> Peer:
     if isinstance(peer, types.PeerUser):
         return User._from_raw(types.UserEmpty(id=peer.user_id))
     elif isinstance(peer, types.PeerChat):
@@ -86,7 +87,7 @@ def expand_peer(client: Client, peer: abcs.Peer, *, broadcast: Optional[bool]) -
             else Group._from_raw(client, channel)
         )
     else:
-        raise RuntimeError("unexpected case")
+        raise TypeError("unexpected case")
 
 
-__all__ = ["Channel", "Peer", "Group", "User"]
+__all__ = ["Channel", "Group", "Peer", "User"]

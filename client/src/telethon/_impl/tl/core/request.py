@@ -1,13 +1,13 @@
 import struct
 from collections.abc import Callable
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, TypeVar
 
 Return = TypeVar("Return")
 
 
 def _bootstrap_get_deserializer(
     constructor_id: int,
-) -> Optional[Callable[[bytes], Any]]:
+) -> Callable[[bytes], Any] | None:
     # Similar to Reader's bootstrapping.
     if Request._get_deserializer is _bootstrap_get_deserializer:
         from ..layer import RESPONSE_MAPPING as API_DESER
@@ -24,10 +24,10 @@ def _bootstrap_get_deserializer(
     return Request._get_deserializer(constructor_id)
 
 
-class Request(Generic[Return]):
-    __slots__ = ("data", "_target_cid")
+class Request[Return]:
+    __slots__ = ("_target_cid", "data")
 
-    def __init__(self, data: bytes, *, target_cid: Optional[int] = None):
+    def __init__(self, data: bytes, *, target_cid: int | None = None):
         self.data = bytes(data)
         self._target_cid = target_cid
 

@@ -1,34 +1,33 @@
-from telethon._rs import (
-    PeerId,
-    PeerAuth,
-    PeerInfo,
-    PeerKind,
-    ChannelKind,
-    DcOption,
-    ChannelState,
-    UpdatesState,
-    UpdateState,
-)
-from typing import TypeAlias
-from typing_extensions import assert_never
+from typing import assert_never
 
 from telethon import _rs
 from telethon._impl.tl import abcs, types
+from telethon._rs import (
+    ChannelKind,
+    ChannelState,
+    DcOption,
+    PeerAuth,
+    PeerId,
+    PeerInfo,
+    PeerKind,
+    UpdatesState,
+    UpdateState,
+)
 
-PeerIdLike: TypeAlias = int | PeerId
-PeerAuthLike: TypeAlias = int | PeerAuth
+type PeerIdLike = int | PeerId
+type PeerAuthLike = int | PeerAuth
 
 __all__ = [
-    "PeerId",
-    "PeerIdLike",
+    "ChannelKind",
+    "ChannelState",
+    "DcOption",
     "PeerAuth",
     "PeerAuthLike",
+    "PeerId",
+    "PeerIdLike",
     "PeerInfo",
     "PeerKind",
     "PeerRef",
-    "ChannelKind",
-    "DcOption",
-    "ChannelState",
     "UpdateState",
     "UpdatesState",
 ]
@@ -48,7 +47,7 @@ class PeerRef(_rs.PeerRef):
         elif isinstance(peer, types.PeerChannel):
             return PeerRef(PeerId.channel(peer.channel_id), 0)
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
     def _to_peer(self) -> abcs.Peer:
         match self.id.kind:

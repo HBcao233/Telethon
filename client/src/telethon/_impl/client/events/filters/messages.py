@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from ..event import Event
 from .combinators import Combinable
@@ -66,16 +66,16 @@ class Command(Combinable):
             raise ValueError(f"command cannot contain spaces: {command}")
 
         self._cmd = command
-        self._username: Optional[str] = None
+        self._username: str | None = None
 
     def __call__(self, event: Event) -> bool:
-        text: Optional[str] = getattr(event, "text", None)
+        text: str | None = getattr(event, "text", None)
         if not text:
             return False
 
         if self._username is None:
             self._username = ""
-            client: Optional[Client]
+            client: Client | None
             if (client := getattr(event, "_client", None)) is not None:
                 user = client._session.user
                 if user and user.username:
@@ -156,7 +156,7 @@ class Media(Combinable):
     AUDIO = "audio"
     VIDEO = "video"
 
-    __slots__ = "_types"
+    __slots__ = ("_types",)
 
     def __init__(self, *types: Literal["photo", "audio", "video"]) -> None:
         self._types = types or None

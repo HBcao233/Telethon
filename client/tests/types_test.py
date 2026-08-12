@@ -1,5 +1,4 @@
 from pytest import mark
-
 from telethon._impl.client.types import AdminRight
 from telethon._impl.tl import types
 

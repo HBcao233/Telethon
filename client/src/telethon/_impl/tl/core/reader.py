@@ -1,7 +1,7 @@
 import functools
 import struct
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from typing import Protocol
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 AnySerializable = TypeVar("AnySerializable", bound="Serializable")
 
 
-def _bootstrap_get_ty(constructor_id: int) -> Optional[Type["Serializable"]]:
+def _bootstrap_get_ty(constructor_id: int) -> type["Serializable"] | None:
     # Lazy import because generate code depends on the Reader.
     # After the first call, the class method is replaced with direct access.
     if Reader._get_ty is _bootstrap_get_ty:
@@ -36,7 +36,7 @@ def _bootstrap_get_ty(constructor_id: int) -> Optional[Type["Serializable"]]:
 
 
 class Reader:
-    __slots__ = ("_view", "_pos", "_len")
+    __slots__ = ("_len", "_pos", "_view")
 
     def __init__(self, buffer: "Buffer") -> None:
         self._view = (
@@ -79,7 +79,7 @@ class Reader:
 
     _get_ty = staticmethod(_bootstrap_get_ty)
 
-    def read_serializable(self, cls: Type[AnySerializable]) -> AnySerializable:
+    def read_serializable(self, cls: type[AnySerializable]) -> AnySerializable:
         # Calls to this method likely need to ignore "type-abstract".
         # See https://github.com/python/mypy/issues/4717.
         # Unfortunately `typing.cast` would add a tiny amount of runtime overhead
@@ -94,8 +94,8 @@ class Reader:
 
 
 @functools.cache
-def single_deserializer(
-    cls: Type[AnySerializable],
+def single_deserializer[AnySerializable](
+    cls: type[AnySerializable],
 ) -> Callable[[bytes], AnySerializable]:
     def deserializer(body: bytes) -> AnySerializable:
         return Reader(body).read_serializable(cls)
@@ -104,8 +104,8 @@ def single_deserializer(
 
 
 @functools.cache
-def list_deserializer(
-    cls: Type[AnySerializable],
+def list_deserializer[AnySerializable](
+    cls: type[AnySerializable],
 ) -> Callable[[bytes], list[AnySerializable]]:
     def deserializer(body: bytes) -> list[AnySerializable]:
         reader = Reader(body)

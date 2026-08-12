@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from telethon._impl.mtsender import RpcError
-from telethon._impl.session import PeerRef, PeerKind
-from telethon._impl.tl import abcs, functions, types
 from telethon._impl.client.types import (
     AsyncList,
     Peer,
@@ -13,12 +11,15 @@ from telethon._impl.client.types import (
     expand_peer,
     peer_id,
 )
+from telethon._impl.mtsender import RpcError
+from telethon._impl.session import PeerKind, PeerRef
+from telethon._impl.tl import abcs, functions, types
 
 if TYPE_CHECKING:
     from .client import Client
 
 
-async def get_me(self: Client) -> Optional[User]:
+async def get_me(self: Client) -> User | None:
     try:
         result = await self(functions.users.get_users(id=[types.InputUserSelf()]))
     except RpcError as e:

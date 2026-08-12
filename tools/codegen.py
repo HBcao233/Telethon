@@ -12,11 +12,14 @@ TL_ROOT = "generator/tl"
 
 
 def run(*args: str) -> int:
-    return subprocess.run((sys.executable, "-m", *args)).returncode
+    return subprocess.run(
+        (sys.executable, "-m", *args),
+        check=False,
+    ).returncode
 
 
 def main() -> None:
-    exit(
+    sys.exit(
         run(GENERATOR, f"{TL_ROOT}/api.tl", f"{GEN_ROOT}/tl")
         or run(GENERATOR, f"{TL_ROOT}/mtproto.tl", f"{GEN_ROOT}/tl/mtproto")
     )

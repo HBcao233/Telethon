@@ -1,6 +1,4 @@
-from typing import Optional
-
-from typing_extensions import Self
+from typing import Self
 
 from ...tl import types
 from .meta import NoPublicConstructor
@@ -22,7 +20,7 @@ class LoginToken(metaclass=NoPublicConstructor):
         return cls._create(code, phone)
 
     @property
-    def timeout(self) -> Optional[int]:
+    def timeout(self) -> int | None:
         """
         Number of seconds before this token expires.
 

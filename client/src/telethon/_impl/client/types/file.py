@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import mimetypes
 import urllib.parse
-from collections.abc import Coroutine
+from collections.abc import Coroutine, Sequence
 from inspect import isawaitable
 from io import BufferedWriter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Protocol, Sequence
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Protocol, Self
 
 from ...tl import abcs, types
 from .meta import NoPublicConstructor
@@ -20,9 +18,7 @@ math_round = round
 
 
 def photo_size_byte_count(size: abcs.PhotoSize) -> int:
-    if isinstance(size, types.PhotoCachedSize):
-        return len(size.bytes)
-    elif isinstance(size, types.PhotoPathSize):
+    if isinstance(size, (types.PhotoCachedSize, types.PhotoPathSize)):
         return len(size.bytes)
     elif isinstance(size, types.PhotoSize):
         return size.size
@@ -37,7 +33,7 @@ def photo_size_byte_count(size: abcs.PhotoSize) -> int:
             + len(stripped_size_footer)
         )
     else:
-        raise RuntimeError("unexpected case")
+        raise TypeError("unexpected case")
 
 
 stripped_size_header = bytes.fromhex(
@@ -55,7 +51,7 @@ def expand_stripped_size(data: bytes | bytearray | memoryview) -> bytes:
 
 def photo_size_dimensions(
     size: abcs.PhotoSize,
-) -> Optional[types.DocumentAttributeImageSize]:
+) -> types.DocumentAttributeImageSize | None:
     if isinstance(size, types.PhotoCachedSize):
         return types.DocumentAttributeImageSize(w=size.w, h=size.h)
     elif isinstance(size, types.PhotoPathSize):
@@ -69,14 +65,14 @@ def photo_size_dimensions(
     elif isinstance(size, types.PhotoStrippedSize):
         return types.DocumentAttributeImageSize(w=size.bytes[1], h=size.bytes[2])
     else:
-        raise RuntimeError("unexpected case")
+        raise TypeError("unexpected case")
 
 
-def try_get_url_path(maybe_url: str | Path | InFileLike) -> Optional[str]:
+def try_get_url_path(maybe_url: str | Path | InFileLike) -> str | None:
     if not isinstance(maybe_url, str):
         return None
     lowercase = maybe_url.lower()
-    if lowercase.startswith("http://") or lowercase.startswith("https://"):
+    if lowercase.startswith(("http://", "https://")):
         return urllib.parse.urlparse(maybe_url).path
     return None
 
@@ -122,7 +118,7 @@ class OutWrapper:
     __slots__ = ("_fd", "_owned_fd")
 
     _fd: OutFileLike | BufferedWriter
-    _owned_fd: Optional[BufferedWriter]
+    _owned_fd: BufferedWriter | None
 
     def __init__(self, file: str | Path | OutFileLike) -> None:
         if isinstance(file, str):
@@ -164,11 +160,11 @@ class File(metaclass=NoPublicConstructor):
         photo: bool,
         muted: bool,
         input_media: abcs.InputMedia,
-        thumb: Optional[abcs.PhotoSize] = None,
-        thumbs: Optional[Sequence[abcs.PhotoSize]] = None,
-        raw: Optional[abcs.MessageMedia | abcs.Photo | abcs.Document] = None,
-        client: Optional[Client] = None,
-        dc_id: Optional[int] = None,
+        thumb: abcs.PhotoSize | None = None,
+        thumbs: Sequence[abcs.PhotoSize] | None = None,
+        raw: abcs.MessageMedia | abcs.Photo | abcs.Document | None = None,
+        client: Client | None = None,
+        dc_id: int | None = None,
     ) -> None:
         self._attributes = attributes
         self._size = size
@@ -186,7 +182,7 @@ class File(metaclass=NoPublicConstructor):
     @classmethod
     def _try_from_raw_message_media(
         cls, client: Client, raw: abcs.MessageMedia
-    ) -> Optional[Self]:
+    ) -> Self | None:
         if isinstance(raw, types.MessageMediaDocument):
             if raw.document:
                 return cls._try_from_raw_document(
@@ -205,7 +201,7 @@ class File(metaclass=NoPublicConstructor):
                     ttl_seconds=raw.ttl_seconds,
                     orig_raw=raw,
                 )
-        elif isinstance(raw, types.MessageMediaWebPage):
+        elif isinstance(raw, types.MessageMediaWebPage):  # noqa: SIM102
             if isinstance(raw.webpage, types.WebPage):
                 if raw.webpage.document:
                     return cls._try_from_raw_document(
@@ -225,9 +221,9 @@ class File(metaclass=NoPublicConstructor):
         raw: abcs.Document,
         *,
         spoiler: bool = False,
-        ttl_seconds: Optional[int] = None,
-        orig_raw: Optional[abcs.MessageMedia] = None,
-    ) -> Optional[Self]:
+        ttl_seconds: int | None = None,
+        orig_raw: abcs.MessageMedia | None = None,
+    ) -> Self | None:
         if isinstance(raw, types.Document):
             return cls._create(
                 attributes=raw.attributes,
@@ -276,9 +272,9 @@ class File(metaclass=NoPublicConstructor):
         raw: abcs.Photo,
         *,
         spoiler: bool = False,
-        ttl_seconds: Optional[int] = None,
-        orig_raw: Optional[abcs.MessageMedia] = None,
-    ) -> Optional[Self]:
+        ttl_seconds: int | None = None,
+        orig_raw: abcs.MessageMedia | None = None,
+    ) -> Self | None:
         if isinstance(raw, types.Photo):
             largest_thumb = max(raw.sizes, key=photo_size_byte_count)
             return cls._create(
@@ -307,7 +303,7 @@ class File(metaclass=NoPublicConstructor):
         return None
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         """
         The file name, if known.
         """
@@ -359,7 +355,7 @@ class File(metaclass=NoPublicConstructor):
         ]
 
     @property
-    def width(self) -> Optional[int]:
+    def width(self) -> int | None:
         """
         The width of the image or video, if available.
         """
@@ -375,7 +371,7 @@ class File(metaclass=NoPublicConstructor):
         return None
 
     @property
-    def height(self) -> Optional[int]:
+    def height(self) -> int | None:
         """
         The width of the image or video, if available.
         """

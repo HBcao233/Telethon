@@ -1,8 +1,6 @@
-from abc import ABC, abstractmethod
 import struct
-from typing import Protocol
-
-from typing_extensions import Self
+from abc import ABC, abstractmethod
+from typing import Protocol, Self
 
 from .reader import Reader
 

@@ -62,7 +62,7 @@ def create_button(message: Message, raw: abcs.KeyboardButton) -> Button:
     ):
         cls = Button
     else:
-        raise RuntimeError("unexpected case")
+        raise TypeError("unexpected case")
 
     instance = cls.__new__(cls)
     instance._msg = weakref.ref(message)

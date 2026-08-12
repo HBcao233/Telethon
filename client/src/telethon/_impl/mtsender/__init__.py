@@ -1,15 +1,15 @@
 from telethon._rs import (
-    SenderPool,
-    RpcError,
-    DroppedError,
     DeserializeError,
+    DroppedError,
+    RpcError,
+    SenderPool,
     TransportError,
 )
 
 __all__ = [
-    "SenderPool",
-    "RpcError",
-    "DroppedError",
     "DeserializeError",
+    "DroppedError",
+    "RpcError",
+    "SenderPool",
     "TransportError",
 ]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 import weakref
-from typing import TYPE_CHECKING, Optional, TypeAlias
+from typing import TYPE_CHECKING
 
 from ....tl import types
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..message import Message
 
 
-RawButtonType: TypeAlias = (
+type RawButtonType = (
     types.KeyboardButton
     | types.KeyboardButtonUrl
     | types.KeyboardButtonCallback
@@ -55,7 +55,7 @@ class Button(abc.ABC):
             )
 
         self._raw: RawButtonType = types.KeyboardButton(text=text)
-        self._msg: Optional[weakref.ReferenceType[Message]] = None
+        self._msg: weakref.ReferenceType[Message] | None = None
 
     @property
     def text(self) -> str:

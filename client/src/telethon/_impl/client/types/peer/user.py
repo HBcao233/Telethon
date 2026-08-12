@@ -1,9 +1,8 @@
-from typing import Optional
+from typing import Self
 
-from typing_extensions import Self
-
-from telethon._impl.session import PeerAuth, PeerId, PeerRef, PeerInfo
+from telethon._impl.session import PeerAuth, PeerId, PeerInfo, PeerRef
 from telethon._impl.tl import abcs, types
+
 from ..meta import NoPublicConstructor
 from .peer import Peer
 
@@ -79,7 +78,7 @@ class User(Peer, metaclass=NoPublicConstructor):
         elif isinstance(user, types.User):
             return cls._create(user)
         else:
-            raise RuntimeError("unexpected case")
+            raise TypeError("unexpected case")
 
     # region Overrides
 
@@ -103,7 +102,7 @@ class User(Peer, metaclass=NoPublicConstructor):
         return f"{self.first_name} {self.last_name}".strip()
 
     @property
-    def username(self) -> Optional[str]:
+    def username(self) -> str | None:
         return self._raw.username
 
     @property
@@ -138,7 +137,7 @@ class User(Peer, metaclass=NoPublicConstructor):
         return self._raw.last_name or ""
 
     @property
-    def phone(self) -> Optional[str]:
+    def phone(self) -> str | None:
         return self._raw.phone
 
     @property
