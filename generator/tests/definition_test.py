@@ -1,5 +1,4 @@
 from pytest import mark, raises
-
 from telethon_generator.tl_parser import (
     Definition,
     Flag,
@@ -97,9 +96,9 @@ def test_parse_valid_definition() -> None:
     )
 
     defn = Definition.from_str("a#1 {b:Type} c:!b = d")
-    assert defn.name, "a"
-    assert defn.id, 1
-    assert len(defn.params), 1
+    assert defn.name == "a"
+    assert defn.id == 1
+    assert len(defn.params) == 1
     assert isinstance(defn.params[0].ty, NormalParameter)
     assert defn.params[0].ty.ty.generic_ref
     assert defn.ty == Type(
@@ -117,7 +116,7 @@ def test_parse_multiline_definition() -> None:
             = t;
         """
 
-    assert Definition.from_str(defn).id, 1
+    assert Definition.from_str(defn).id == 1
 
     defn = """
         second#2
@@ -125,7 +124,7 @@ def test_parse_multiline_definition() -> None:
         = t;
         """
 
-    assert Definition.from_str(defn).id, 2
+    assert Definition.from_str(defn).id == 2
 
     defn = """
         third#3
@@ -136,7 +135,7 @@ def test_parse_multiline_definition() -> None:
                     t;
         """
 
-    assert Definition.from_str(defn).id, 3
+    assert Definition.from_str(defn).id == 3
 
 
 def test_parse_complete() -> None:

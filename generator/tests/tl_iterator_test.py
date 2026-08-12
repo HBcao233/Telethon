@@ -1,5 +1,4 @@
 from pytest import raises
-
 from telethon_generator.tl_parser import FunctionDef, TypeDef, parse_tl_file
 
 

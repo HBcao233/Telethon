@@ -1,5 +1,3 @@
-from typing import Optional
-
 from telethon_generator.codegen import FakeFs, generate
 from telethon_generator.tl_parser import Definition, ParsedTl, parse_tl_file
 
@@ -10,8 +8,8 @@ def get_definitions(contents: str) -> list[Definition]:
 
 def gen_py_code(
     *,
-    typedefs: Optional[list[Definition]] = None,
-    functiondefs: Optional[list[Definition]] = None,
+    typedefs: list[Definition] | None = None,
+    functiondefs: list[Definition] | None = None,
 ) -> str:
     fs = FakeFs()
     generate(
@@ -20,7 +18,7 @@ def gen_py_code(
     generated = bytearray()
     for path, data in fs._files.items():
         if path.stem not in ("__init__", "layer"):
-            generated += f"# {path}\n".encode("utf-8")
+            generated += f"# {path}\n".encode()
             generated += data
             data += b"\n"
     return str(generated, "utf-8")

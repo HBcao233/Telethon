@@ -34,7 +34,6 @@ fn main() {
         .arg("-m")
         .arg("pip")
         .arg("install")
-        .arg("-e")
         .arg(generator_path)
         .status()
         .expect("Failed to execute pip install generator");

@@ -15,17 +15,17 @@ from .._impl.tl_parser import (
 )
 
 __all__ = [
+    "BaseParameter",
     "Definition",
     "Flag",
+    "FlagsParameter",
+    "FunctionDef",
+    "NormalParameter",
     "Parameter",
     "ParsedTl",
-    "TypeDefNotImplementedError",
-    "BaseParameter",
-    "FlagsParameter",
-    "NormalParameter",
     "Type",
-    "FunctionDef",
     "TypeDef",
+    "TypeDefNotImplementedError",
     "load_tl_file",
     "parse_tl_file",
 ]

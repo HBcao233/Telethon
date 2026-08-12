@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import Optional
 
 from .flag import Flag
 from .ty import Type
@@ -31,7 +30,7 @@ class FlagsParameter(BaseParameter):
 @dataclass
 class NormalParameter(BaseParameter):
     ty: Type
-    flag: Optional[Flag]
+    flag: Flag | None
 
     def __str__(self) -> str:
         res = ""

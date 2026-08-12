@@ -1,5 +1,4 @@
 from collections.abc import Iterator
-from typing import Type
 
 from .tl.definition import Definition
 from .utils import remove_tl_comments
@@ -21,7 +20,7 @@ class FunctionDef(Definition):
 def iterate(contents: str) -> Iterator[TypeDef | FunctionDef | Exception]:
     contents = remove_tl_comments(contents)
     index = 0
-    cls: Type[TypeDef] | Type[FunctionDef] = TypeDef
+    cls: type[TypeDef | FunctionDef] = TypeDef
     while index < len(contents):
         if (end := contents.find(DEFINITION_SEP, index)) == -1:
             end = len(contents)
@@ -44,5 +43,5 @@ def iterate(contents: str) -> Iterator[TypeDef | FunctionDef | Exception]:
 
         try:
             yield cls.from_str(definition)
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             yield e

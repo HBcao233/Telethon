@@ -1,7 +1,6 @@
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from .tl import Definition
 from .tl_iterator import FunctionDef, TypeDef, iterate
@@ -9,7 +8,7 @@ from .tl_iterator import FunctionDef, TypeDef, iterate
 
 @dataclass
 class ParsedTl:
-    layer: Optional[int]
+    layer: int | None
     typedefs: list[Definition]
     functiondefs: list[Definition]
 
@@ -29,7 +28,7 @@ def load_tl_file(path: str | Path) -> ParsedTl:
         if isinstance(definition, Exception):
             # generic types (such as vector) is known to not be implemented
             if definition.args[0] != "not implemented":
-                raise
+                raise definition
         elif isinstance(definition, TypeDef):
             typedefs.append(definition)
         else:

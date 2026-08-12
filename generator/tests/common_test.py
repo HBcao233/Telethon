@@ -1,5 +1,4 @@
 from pytest import mark
-
 from telethon_generator._impl.codegen.serde.common import (
     split_words,
     to_class_name,

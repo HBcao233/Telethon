@@ -1,5 +1,4 @@
 from pytest import mark, raises
-
 from telethon_generator.tl_parser import (
     Flag,
     FlagsParameter,

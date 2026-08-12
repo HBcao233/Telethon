@@ -13,17 +13,17 @@ from .tl_iterator import FunctionDef, TypeDef
 from .tl_iterator import iterate as parse_tl_file
 
 __all__ = [
-    "FunctionDef",
-    "TypeDef",
-    "parse_tl_file",
+    "BaseParameter",
     "Definition",
     "Flag",
-    "Parameter",
-    "TypeDefNotImplementedError",
-    "BaseParameter",
     "FlagsParameter",
+    "FunctionDef",
     "NormalParameter",
-    "Type",
+    "Parameter",
     "ParsedTl",
+    "Type",
+    "TypeDef",
+    "TypeDefNotImplementedError",
     "load_tl_file",
+    "parse_tl_file",
 ]

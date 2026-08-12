@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-
-from typing_extensions import Self
+from typing import Self
 
 from ..utils import infer_id
 from .parameter import Parameter, TypeDefNotImplementedError
@@ -74,9 +73,12 @@ class Definition:
                 flag_defs.append(param.name)
             elif not isinstance(param.ty, NormalParameter):
                 raise TypeError(f"unrecognised subclass: {param.ty}")
-            elif param.ty.ty.generic_ref and param.ty.ty.name not in type_defs:
-                raise ValueError("missing def")
-            elif param.ty.flag and param.ty.flag.name not in flag_defs:
+            elif (
+                param.ty.ty.generic_ref
+                and param.ty.ty.name not in type_defs
+                or param.ty.flag
+                and param.ty.flag.name not in flag_defs
+            ):
                 raise ValueError("missing def")
 
             params.append(param)
@@ -108,7 +110,7 @@ class Definition:
             if isinstance(param.ty, NormalParameter):
                 def_set.update(param.ty.ty.find_generic_refs())
 
-        type_defs = list(sorted(def_set))
+        type_defs = sorted(def_set)
         for type_def in type_defs:
             res += f" {{{type_def}:Type}}"
 

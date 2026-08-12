@@ -1,8 +1,6 @@
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Optional
-
-from typing_extensions import Self
+from typing import Self
 
 
 @dataclass
@@ -11,7 +9,7 @@ class Type:
     name: str
     bare: bool
     generic_ref: bool
-    generic_arg: Optional[Self]
+    generic_arg: Self | None
 
     @classmethod
     def from_str(cls, ty: str) -> Self:

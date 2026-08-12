@@ -20,7 +20,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dynamic = ["version"]
-dependencies = ["typing-extensions~=4.12.2"]
+dependencies = []
+
 [project.optional-dependencies]
 dev = ["pytest~=7.3"]
 
@@ -31,7 +32,7 @@ dev = ["pytest~=7.3"]
 "Bug Tracker" = "https://telethon.dev/issues/"
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]

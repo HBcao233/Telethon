@@ -1,7 +1,4 @@
-from typing import Optional
-
 from pytest import mark, raises
-
 from telethon_generator.tl_parser import Type
 
 
@@ -84,7 +81,7 @@ def test_generic_ref_not() -> None:
         ("foo<bar<baz>>", "bar<baz>"),
     ],
 )
-def test_generic_arg(ty: str, generic: Optional[str]) -> None:
+def test_generic_arg(ty: str, generic: str | None) -> None:
     if generic is None:
         assert Type.from_str(ty).generic_arg is None
     else:

@@ -122,7 +122,7 @@ def generate_write(writer: SourceWriter, defn: Definition) -> None:
         else:
             for param in iter:
                 if not isinstance(param.ty, NormalParameter):
-                    raise RuntimeError("FlagsParameter should be considered trivial")
+                    raise TypeError("FlagsParameter should be considered trivial")
                 generate_normal_param_write(
                     writer, tmp_names, "buffer", f"self.{param.name}", param.ty
                 )
@@ -160,7 +160,7 @@ def generate_function(writer: SourceWriter, defn: Definition) -> None:
         else:
             for param in iter:
                 if not isinstance(param.ty, NormalParameter):
-                    raise RuntimeError("FlagsParameter should be considered trivial")
+                    raise TypeError("FlagsParameter should be considered trivial")
                 generate_normal_param_write(
                     writer, tmp_names, "_buffer", param.name, param.ty
                 )
