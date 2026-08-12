@@ -21,7 +21,6 @@ from .session import (
     UpdatesLike,
 )
 from .errors import RpcError, DroppedError, DeserializeError, TransportError
-from .sender import Sender
 from .sender_pool import SenderPool
 
 __all__ = [
@@ -42,7 +41,6 @@ __all__ = [
     "DroppedError",
     "DeserializeError",
     "TransportError",
-    "Sender",
     "SenderPool",
     "GapError",
     "Instant",

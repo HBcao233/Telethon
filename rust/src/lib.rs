@@ -3,7 +3,7 @@ mod mtsender;
 mod session;
 
 pub use mtsender::{
-    DeserializeError, DroppedError, PyRpcError, PySender, PySenderPool, TransportError,
+    DeserializeError, DroppedError, PyRpcError, PySenderPool, TransportError,
 };
 pub use session::{PySession, SessionLike};
 
@@ -76,9 +76,6 @@ mod _rs {
 
     #[pymodule_export]
     use super::TransportError;
-
-    #[pymodule_export]
-    use super::PySender;
 
     #[pymodule_export]
     use super::PySenderPool;
