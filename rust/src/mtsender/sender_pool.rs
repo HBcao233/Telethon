@@ -77,6 +77,7 @@ impl SenderPoolInner {
 }
 
 impl PySenderPool {
+    /// Ensure the tokio runtime is created
     fn get_locals<'py>(&self, py: Python<'py>) -> PyResult<TaskLocals> {
         let locals = self
             .inner
@@ -183,47 +184,52 @@ impl PySenderPool {
             .is_some())
     }
 
-    async fn invoke_in_dc(&self, dc_id: i32, body: PyBuffer<u8>) -> PyResult<Vec<u8>> {
-        let body = Python::attach(|py| {
-            let _ = self.get_locals(py)?;
-
-            body.to_vec(py)
-        })?;
-
+    fn invoke_in_dc<'py>(
+        &self,
+        py: Python<'py>,
+        dc_id: i32,
+        body: PyBuffer<u8>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let _ = self.get_locals(py)?;
+        let body = body.to_vec(py)?;
         let inner = self.inner.clone();
-        inner
-            .handle
-            .raw_invoke_in_dc(dc_id, body)
-            .await
-            .map_err(convert_invocation_error)
-    }
 
-    async fn invoke(&self, body: PyBuffer<u8>) -> PyResult<Vec<u8>> {
-        self.invoke_in_dc(self.home_dc_id()?, body).await
-    }
-
-    async fn disconnect(&self) -> PyResult<()> {
-        let _ = Python::attach(|py| self.get_locals(py))?;
-
-        let inner = self.inner.clone();
-        inner.handle.quit();
-
-        let pool_task = inner
-            .pool_task
-            .lock()
-            .map_err(|_| PyRuntimeError::new_err("the Mutex of pool_task poisoned."))?
-            .take();
-        if let Some(pool_task) = pool_task {
-            pool_task
+        future_into_py(py, async move {
+            inner
+                .handle
+                .raw_invoke_in_dc(dc_id, body)
                 .await
-                .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
-        }
+                .map_err(convert_invocation_error)
+        })
+    }
 
-        Ok(())
+    fn invoke<'py>(&self, py: Python<'py>, body: PyBuffer<u8>) -> PyResult<Bound<'py, PyAny>> {
+        self.invoke_in_dc(py, self.home_dc_id()?, body)
+    }
+
+    fn disconnect<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let _ = self.get_locals(py)?;
+        let inner = self.inner.clone();
+        future_into_py(py, async move {
+            inner.handle.quit();
+
+            let pool_task = inner
+                .pool_task
+                .lock()
+                .map_err(|_| PyRuntimeError::new_err("the Mutex of pool_task poisoned."))?
+                .take();
+            if let Some(pool_task) = pool_task {
+                pool_task
+                    .await
+                    .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+            }
+
+            Ok(())
+        })
     }
 
     fn pop_updates<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        let _ = Python::attach(|py| self.get_locals(py))?;
+        let _ = self.get_locals(py)?;
         let inner = self.inner.clone();
         let catch_up = self.catch_up;
 
@@ -248,17 +254,19 @@ impl PySenderPool {
     /// Synchronize the updates state to the session.
     ///
     /// This is **not** automatically done on drop.
-    async fn sync_update_state(&self) -> PyResult<()> {
-        let _ = Python::attach(|py| self.get_locals(py))?;
-
+    fn sync_update_state<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let _ = self.get_locals(py)?;
         let inner = self.inner.clone();
         let catch_up = self.catch_up;
-        let updates = inner.get_or_init_updates(catch_up).await?;
-        updates
-            .as_ref()
-            .unwrap()
-            .sync_update_state()
-            .await
-            .map_err(|e| *e.downcast::<PyErr>().unwrap())
+
+        future_into_py(py, async move {
+            let updates = inner.get_or_init_updates(catch_up).await?;
+            updates
+                .as_ref()
+                .unwrap()
+                .sync_update_state()
+                .await
+                .map_err(|e| *e.downcast::<PyErr>().unwrap())
+        })
     }
 }

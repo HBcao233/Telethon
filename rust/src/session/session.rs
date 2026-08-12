@@ -65,7 +65,7 @@ impl PySession {
 
     #[allow(unused_variables)]
     #[pyo3(signature = (dc_id))]
-    async fn set_home_dc_id(&self, dc_id: i32) -> PyResult<()> {
+    fn set_home_dc_id(&self, dc_id: i32) -> PyResult<()> {
         Err(PyNotImplementedError::new_err(
             "Session subclasses must implement set_home_dc_id()",
         ))
@@ -81,7 +81,7 @@ impl PySession {
 
     #[allow(unused_variables)]
     #[pyo3(signature = (dc_option))]
-    async fn set_dc_option(&self, dc_option: Py<PyDcOption>) -> PyResult<()> {
+    fn set_dc_option(&self, dc_option: Py<PyDcOption>) -> PyResult<()> {
         Err(PyNotImplementedError::new_err(
             "Session subclasses must implement set_dc_option()",
         ))
@@ -89,7 +89,7 @@ impl PySession {
 
     #[allow(unused_variables)]
     #[pyo3(signature = (peer))]
-    async fn peer(&self, peer: PeerIdLike) -> PyResult<Option<PyPeerInfo>> {
+    fn peer(&self, peer: PeerIdLike) -> PyResult<Option<PyPeerInfo>> {
         Err(PyNotImplementedError::new_err(
             "Session subclasses must implement peer()",
         ))
@@ -97,14 +97,14 @@ impl PySession {
 
     #[allow(unused_variables)]
     #[pyo3(signature = (peer_info))]
-    async fn cache_peer(&self, peer_info: Py<PyPeerInfo>) -> PyResult<()> {
+    fn cache_peer(&self, peer_info: Py<PyPeerInfo>) -> PyResult<()> {
         Err(PyNotImplementedError::new_err(
             "Session subclasses must implement cache_peer()",
         ))
     }
 
     #[pyo3(signature = ())]
-    async fn updates_state(&self) -> PyResult<Py<PyUpdatesState>> {
+    fn updates_state(&self) -> PyResult<Py<PyUpdatesState>> {
         Err(PyNotImplementedError::new_err(
             "Session subclasses must implement updates_state()",
         ))
@@ -112,7 +112,7 @@ impl PySession {
 
     #[allow(unused_variables)]
     #[pyo3(signature = (update))]
-    async fn set_update_state(&self, update: PyUpdateState) -> PyResult<()> {
+    fn set_update_state(&self, update: PyUpdateState) -> PyResult<()> {
         Err(PyNotImplementedError::new_err(
             "Session subclasses must implement set_update_state()",
         ))
