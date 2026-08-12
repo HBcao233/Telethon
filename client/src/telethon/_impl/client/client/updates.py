@@ -5,7 +5,6 @@ from collections.abc import Awaitable, Callable
 from inspect import isawaitable
 from typing import TYPE_CHECKING, Any, Optional, Sequence, Type, Iterable
 
-from telethon._impl.session import GapError, State, UpdatesLike
 from telethon._impl.tl import abcs
 from telethon._impl.tl.core import Reader
 from ..events import Continue, Event
@@ -13,6 +12,7 @@ from ..events.filters import FilterType
 from ..types import build_chat_map
 
 if TYPE_CHECKING:
+    from telethon._impl.session import State, UpdateAndPeers
     from .client import Client
 
 

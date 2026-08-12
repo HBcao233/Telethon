@@ -14,14 +14,9 @@ from .types import (
 from .session import Session
 from .storage.sqlite import SqliteSession
 from .updates import (
-    GapError,
-    Instant,
     MessageBox,
-    MessageBoxes,
-    PrematureEndReason,
     State,
     UpdateAndPeers,
-    UpdatesLike,
 )
 
 __all__ = [
@@ -39,12 +34,7 @@ __all__ = [
     # "MemorySession",
     "SqliteSession",
     "Session",
-    "GapError",
-    "Instant",
     "MessageBox",
-    "MessageBoxes",
-    "PrematureEndReason",
     "State",
     "UpdateAndPeers",
-    "UpdatesLike",
 ]
