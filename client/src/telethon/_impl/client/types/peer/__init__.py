@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import itertools
-from typing import TYPE_CHECKING, Optional, Iterable, TypeAlias
+from typing import TYPE_CHECKING, Optional, Iterable, TypeAlias, Sequence
 
 from telethon._impl.session import PeerId
 from telethon._impl.tl import abcs, types
@@ -36,17 +36,17 @@ def build_chat_map(
         c.id: c for c in itertools.chain(users_iter, chats_iter)
     }
 
-    async def _safe_cache_peer(peer: Peer) -> None:
-        try:
-            await client._session.cache_peer(peer._info)
-        except Exception:
-            client._config.base_logger.warning(
-                f"Failed to cache peer {peer.id}",
-                exc_info=True
-            )
+    async def _cache_peers(peers: Sequence[Peer]) -> None:
+        for peer in peers:
+            try:
+                await client._session.cache_peer(peer._info)
+            except Exception:
+                client._config.base_logger.warning(
+                    f"Failed to cache peer {peer.id}",
+                    exc_info=True
+                )
 
-    for peer in result.values():
-        asyncio.create_task(_safe_cache_peer(peer))
+    asyncio.create_task(_cache_peers(result.values()))
 
     return result
 
