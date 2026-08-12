@@ -420,20 +420,18 @@ impl PyUpdatesState {
         date: i32,
         seq: i32,
         channels: Vec<PyChannelState>,
-    ) -> PyResult<(Self, PyUpdateState)> {
-        Ok((
-            match pts {
-                PyUpdatesStateArg1::Int(pts) => Self {
-                    pts,
-                    qts,
-                    date,
-                    seq,
-                    channels,
-                },
-                PyUpdatesStateArg1::Updates(x) => x,
+    ) -> PyClassInitializer<Self> {
+        let sub = match pts {
+            PyUpdatesStateArg1::Int(pts) => Self {
+                pts,
+                qts,
+                date,
+                seq,
+                channels,
             },
-            PyUpdateState {},
-        ))
+            PyUpdatesStateArg1::Updates(x) => x,
+        };
+        PyClassInitializer::from(PyUpdateState {}).add_subclass(sub)
     }
 
     fn __repr__(&self) -> String {
@@ -662,8 +660,8 @@ struct PyUpdateStatePrimary {
 impl PyUpdateStatePrimary {
     #[new]
     #[pyo3(signature = (pts, date, seq))]
-    fn new(pts: i32, date: i32, seq: i32) -> (Self, PyUpdateState) {
-        (Self { pts, date, seq }, PyUpdateState {})
+    fn new(pts: i32, date: i32, seq: i32) -> PyClassInitializer<Self> {
+        PyClassInitializer::from(PyUpdateState {}).add_subclass(Self { pts, date, seq })
     }
 
     fn __repr__(&self) -> String {
@@ -691,8 +689,8 @@ struct PyUpdateStateSecondary {
 impl PyUpdateStateSecondary {
     #[new]
     #[pyo3(signature = (qts))]
-    fn new(qts: i32) -> (Self, PyUpdateState) {
-        (Self { qts }, PyUpdateState {})
+    fn new(qts: i32) -> PyClassInitializer<Self> {
+        PyClassInitializer::from(PyUpdateState {}).add_subclass(Self { qts })
     }
 
     fn __repr__(&self) -> String {
@@ -719,8 +717,8 @@ struct PyUpdateStateChannel {
 impl PyUpdateStateChannel {
     #[new]
     #[pyo3(signature = (id, pts))]
-    fn new(id: i64, pts: i32) -> (Self, PyUpdateState) {
-        (Self { id, pts }, PyUpdateState {})
+    fn new(id: i64, pts: i32) -> PyClassInitializer<Self> {
+        PyClassInitializer::from(PyUpdateState {}).add_subclass(Self { id, pts })
     }
 
     fn __repr__(&self) -> String {

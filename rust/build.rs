@@ -13,7 +13,7 @@ fn main() {
     let codegen_script_path = project_root.join("tools/codegen.py");
 
     let config = pyo3_build_config::get();
-    let python_executable_path = &config.executable.clone().unwrap();
+    let python_executable_path = &config.executable().unwrap();
 
     println!("cargo:warning=Using Python: {:?}", python_executable_path);
 

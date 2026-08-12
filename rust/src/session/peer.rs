@@ -32,7 +32,7 @@ pub const SELF_USER_ID: i64 = 1 << 40;
 
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[pyclass(from_py_object, name = "PeerId", module = "grammers.sessions")]
+#[pyclass(from_py_object, name = "PeerId", module = "telethon._impl.session")]
 pub struct PyPeerId(pub i64);
 
 #[pymethods]
@@ -204,7 +204,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PeerIdLike {
 #[pyclass(
     from_py_object,
     name = "PeerKind",
-    module = "grammers.sessions",
+    module = "telethon._impl.session",
     eq,
     eq_int,
     frozen,
@@ -243,7 +243,7 @@ impl PyPeerKind {
 #[pyclass(
     from_py_object,
     name = "PeerAuth",
-    module = "grammers.sessions",
+    module = "telethon._impl.session",
     eq,
     frozen,
     hash
@@ -324,7 +324,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PeerAuthLike {
 #[pyclass(
     from_py_object,
     name = "ChannelKind",
-    module = "grammers.sessions",
+    module = "telethon._impl.session",
     eq,
     eq_int,
     frozen,
@@ -337,6 +337,8 @@ pub enum PyChannelKind {
     Megagroup,
     /// Value used for a channel with its [`tl.types.Channel.gigagroup`] flag set to `true`.
     Gigagroup,
+    /// Value used for a channel of [`tl::types::Community`] or [`tl::types::CommunityForbidden`] type.
+    Community,
 }
 
 #[pymethods]
@@ -346,6 +348,7 @@ impl PyChannelKind {
             Self::Broadcast => "ChannelKind.Broadcast",
             Self::Megagroup => "ChannelKind.Megagroup",
             Self::Gigagroup => "ChannelKind.Gigagroup",
+            Self::Community => "ChannelKind.Community",
         }
         .to_string()
     }
@@ -361,6 +364,7 @@ impl From<ChannelKind> for PyChannelKind {
             ChannelKind::Broadcast => Self::Broadcast,
             ChannelKind::Megagroup => Self::Megagroup,
             ChannelKind::Gigagroup => Self::Gigagroup,
+            ChannelKind::Community => Self::Community,
         }
     }
 }
@@ -371,6 +375,7 @@ impl From<PyChannelKind> for ChannelKind {
             PyChannelKind::Broadcast => Self::Broadcast,
             PyChannelKind::Megagroup => Self::Megagroup,
             PyChannelKind::Gigagroup => Self::Gigagroup,
+            PyChannelKind::Community => Self::Community,
         }
     }
 }
@@ -380,7 +385,7 @@ impl From<PyChannelKind> for ChannelKind {
 #[pyclass(
     skip_from_py_object,
     name = "PeerInfo",
-    module = "grammers.sessions",
+    module = "telethon._impl.session",
     subclass
 )]
 pub struct PyPeerInfo {}
@@ -407,7 +412,7 @@ impl PyPeerInfo {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-#[pyclass(from_py_object, name = "PeerInfoUser", module = "grammers.sessions", extends = PyPeerInfo, eq)]
+#[pyclass(from_py_object, name = "PeerInfoUser", module = "telethon._impl.session", extends = PyPeerInfo, eq)]
 pub struct PyPeerInfoUser {
     /// Bare user identifier.
     ///
@@ -490,7 +495,7 @@ impl PyPeerInfoUser {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-#[pyclass(from_py_object, name = "PeerInfoChat", module = "grammers.sessions", extends = PyPeerInfo, eq)]
+#[pyclass(from_py_object, name = "PeerInfoChat", module = "telethon._impl.session", extends = PyPeerInfo, eq)]
 pub struct PyPeerInfoChat {
     id: i64,
 }
@@ -533,7 +538,7 @@ impl PyPeerInfoChat {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-#[pyclass(from_py_object, name = "PeerInfoChannel", module = "grammers.sessions", extends = PyPeerInfo, eq)]
+#[pyclass(from_py_object, name = "PeerInfoChannel", module = "telethon._impl.session", extends = PyPeerInfo, eq)]
 pub struct PyPeerInfoChannel {
     /// Bare channel identifier.
     ///
@@ -782,7 +787,7 @@ impl PeerInfoLike {
 #[pyclass(
     from_py_object,
     name = "PeerRef",
-    module = "grammers.sessions",
+    module = "telethon._impl.session",
     subclass
 )]
 pub struct PyPeerRef {
