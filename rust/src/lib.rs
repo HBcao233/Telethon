@@ -57,28 +57,13 @@ mod _rs {
     use crate::session::PySession;
 
     #[pymodule_export]
-    use crate::session::updates::GapError;
-
-    #[pymodule_export]
-    use crate::session::updates::PyInstant;
-
-    #[pymodule_export]
     use crate::session::updates::PyMessageBox;
-
-    #[pymodule_export]
-    use crate::session::updates::PyMessageBoxes;
-
-    #[pymodule_export]
-    use crate::session::updates::PyPrematureEndReason;
 
     #[pymodule_export]
     use crate::session::updates::PyState;
 
     #[pymodule_export]
     use crate::session::updates::PyUpdateAndPeers;
-
-    #[pymodule_export]
-    use crate::session::updates::PyUpdatesLike;
 
     #[pymodule_export]
     use super::PyRpcError;

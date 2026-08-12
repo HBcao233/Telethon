@@ -1,4 +1,3 @@
-pub(crate) mod message_box;
 pub mod peer;
 mod session;
 pub mod types;
