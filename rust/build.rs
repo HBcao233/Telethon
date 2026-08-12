@@ -2,6 +2,20 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
+fn get_python_executable() -> PathBuf {
+    if let Ok(p) = env::var("PYO3_PYTHON") {
+        return PathBuf::from(p);
+    }
+    match pyo3_build_config::get().executable() {
+        Some(path) => PathBuf::from(path),
+        None => {
+            env::var("PYTHON_EXECUTABLE")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| PathBuf::from("python3"))
+        }
+    }
+}
+
 fn main() {
     println!("cargo:rerun-if-changed=tools/codegen.py");
 
@@ -12,12 +26,11 @@ fn main() {
     let generator_path = project_root.join("generator");
     let codegen_script_path = project_root.join("tools/codegen.py");
 
-    let config = pyo3_build_config::get();
-    let python_executable_path = &config.executable().unwrap();
+    let python_executable_path = get_python_executable();
 
     println!("cargo:warning=Using Python: {:?}", python_executable_path);
 
-    let status = Command::new(python_executable_path)
+    let status = Command::new(&python_executable_path)
         .arg("-m")
         .arg("pip")
         .arg("install")
