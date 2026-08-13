@@ -1,4 +1,3 @@
-
 [project]
 name = "telethon_generator"
 description = "Code generator for Telethon"
@@ -7,7 +6,7 @@ authors = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 keywords = ["telegram", "parser", "codegen", "telethon"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -37,6 +36,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
 version = {attr = "telethon_generator.version.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["telethon_generator*"]
 
 [tool.lint]
 select = ["F", "E", "W", "I", "N", "ANN"]

@@ -34,7 +34,7 @@ fn main() {
         .arg("-m")
         .arg("pip")
         .arg("install")
-        .arg(generator_path)
+        .arg(&generator_path)
         .status()
         .expect("Failed to execute pip install generator");
 
@@ -42,7 +42,15 @@ fn main() {
         panic!("install telethon_generator failed with status {:?}", status);
     }
 
-    let status = Command::new(python_executable_path)
+    let generator_package_path = generator_path.join("src");
+    let pythonpath = format!(
+        "{}:{}",
+        generator_package_path.to_str().unwrap(),
+        env::var("PYTHONPATH").unwrap_or_default()
+    );
+
+    let status = Command::new(&python_executable_path)
+        .env("PYTHONPATH", pythonpath)
         .arg(codegen_script_path)
         .status()
         .expect("Failed to execute tools/codegen.py");
