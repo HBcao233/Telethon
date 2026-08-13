@@ -54,6 +54,17 @@ build-backend = "maturin"
 module-name = "telethon._rs"
 manifest-path = "Cargo.toml"
 python-source = "client/src/"
+include = [
+  { path = "**/tl/__init__.py", format = "wheel" },
+  { path = "**/tl/layer.py", format = "wheel" },
+  { path = "**/tl/abcs/*", format = "wheel" },
+  { path = "**/tl/functions/*", format = "wheel" },
+  { path = "**/tl/types/*", format = "wheel" },
+  { path = "**/mtproto/layer.py", format = "wheel" },
+  { path = "**/mtproto/abcs/*", format = "wheel" },
+  { path = "**/mtproto/functions/*", format = "wheel" },
+  { path = "**/mtproto/types/*", format = "wheel" },
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "telethon.version.__version__"}
