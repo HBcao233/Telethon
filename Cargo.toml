@@ -1,6 +1,6 @@
 [package]
 name = "telethon"
-version = "0.0.1"
+version = "2.0.0-a0"
 description = """
 A sender implementation for pyo3 using the Mobile Transport Protocol.
 """
